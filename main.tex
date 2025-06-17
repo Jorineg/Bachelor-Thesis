@@ -5,7 +5,7 @@
 \usepackage{algorithmicx}
 \usepackage{algorithm}
 \usepackage{amsmath, amssymb}
-
+\usepackage{animate}
 
 \newcommand{\m}{\text{ mod }}
 
@@ -162,7 +162,7 @@ Where $f$ determines the color used to send data east and $1-f$ is used to recei
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.5\linewidth]{plots/stencil_algorithm_animation.gif}
+    \animategraphics[loop,controls,width=0.5\linewidth]{1}{stencil_frames/frame_0}{0}{8}
     \caption{Visualization of the stencil computation for a radius-2, tiled stencil.}
     \label{fig:stencil_algorithm_animation}
 \end{figure}

@@ -1,11 +1,17 @@
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-import matplotlib.animation as animation
+import os
 
-def create_stencil_animation():
+def generate_stencil_frames():
     # Create figure with subplots using gridspec for better control over spacing
     fig, (ax_grid, ax_text) = plt.subplots(1, 2, figsize=(16, 8), 
                                            gridspec_kw={'width_ratios': [2.5, 1]})
+    
+    # --- Create output directory ---
+    output_dir = 'stencil_frames'
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    print(f"Saving frames in '{os.path.abspath(output_dir)}'...")
     
     # Grid dimensions
     width, height = 9, 7
@@ -83,7 +89,7 @@ def create_stencil_animation():
         r"$\mathrm{buf_c} = w_0 \cdot \mathrm{buf_c} + acc$"
     ]
     
-    def animate(frame):
+    def draw_frame(frame):
         setup_grid()
         setup_text_area()
         
@@ -121,22 +127,17 @@ def create_stencil_animation():
             patches.Patch(color='black', label='Current stencil access pattern')
         ]
         ax_grid.legend(handles=legend_elements, loc='upper right', bbox_to_anchor=(1.0, 1.0))
+
+    # --- Loop through frames and save each as a PNG ---
+    for frame_num in range(len(shifts)):
+        draw_frame(frame_num)
+        
+        # Save the figure as a PNG file
+        filename = os.path.join(output_dir, f'frame_{frame_num:02d}.png')
+        plt.savefig(filename, dpi=150)
     
-    # Create animation
-    ani = animation.FuncAnimation(
-        fig, animate, frames=len(shifts), interval=2500, repeat=True
-    )
-    
-    # Adjust layout manually for a smaller gap and proper padding
-    fig.subplots_adjust(left=0, right=0.97, top=0.93, bottom=0.03, wspace=0.0)
-    
-    # Save as GIF
-    print("Creating GIF animation... This might take a moment.")
-    ani.save('stencil_algorithm_animation.gif', writer='pillow', fps=0.8, dpi=150)
-    print("Animation saved as 'stencil_algorithm_animation.gif'")
-    
-    plt.show()
-    return ani
+    print(f"Successfully saved {len(shifts)} frames in '{output_dir}'.")
+    plt.close(fig) # Close the figure to free up memory
 
 if __name__ == "__main__":
-    ani = create_stencil_animation() 
+    generate_stencil_frames() 
