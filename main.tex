@@ -71,6 +71,7 @@ Jacobi method and Gauss-Seidel method. we implement Jacobi.
 \subsection{Cerebras hardware}
 wse2 + wse3, grid like arangement of pes, number of pes, memory per pe, links between pes, colors, simd operations, data structure descriptiors, data structure registers, input and output queues, limitations (e.g. cannot receive and send at same time, limited number of colors, input output queues and dsrs)
 memory banks, bank conflicts
+tasks, and task activation for async communication, task blocking
 \subsection{Stencil algorithms for Cerebras}
 some previous work for 3d stencils, cerebras example.
 cerebras is ideal harware for stencil computation. 
@@ -158,9 +159,29 @@ If colors 0 and 1 are used for data transfer from west to east, following functi
 \end{equation}
 Where $f$ determines the color used to send data east and $1-f$ is used to receive from west. The same method is also applied for the other directions.
 \subsection{PE Program}
-The tile of the grid, held by single PE is stored in the center region of a 2D array of size $(t_h+2r)\times (t_w+2r)$ - the $buffer$. This array is larger than the tile itself to allow for the halo region, which is used to store the data received from the neighbors. Furthermore an accumulator array of the same size is used to store the intermediate values of the stencil computation. In this array, only the center positions of size $t_h, t_w$ is used. The same size leads to more constant memory access patterns which reduces bank conflicts.
 
-For this algorithm we use asynchronous dsd communication.
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\linewidth]{plots/stencil_algorithm_animation.gif}
+    \caption{Visualization of the stencil computation for a radius-2, tiled stencil.}
+    \label{fig:stencil_algorithm_animation}
+\end{figure}
+
+The tile of the grid, held by single PE is stored in the center region of a 2D array of size $(t_h+2r)\times (t_w+2r)$ - the $buffer$. This array is larger than the tile itself to allow for the halo region, which is used to store the data received from the neighbors. Furthermore an accumulator array of the same size is used to store the intermediate values of the stencil computation. In this array, only the center of size $t_h, t_w$ is used. Chosing its size to be the same as the buffer leads to more consistant memory access patterns, which reduces bank conflicts.
+
+Two \texttt{mem4d\_dsd}s per direction are used for communication. One that specifies the location withing in the buffer of the data to send and one that specifies the location of the data to receive.
+Asynchronous \texttt{@fmovs} instructions are used for data exchange. To only start the computation after all data is send and received, two counters are used to count the number of completed \texttt{@fmovs} instructions for send and receive and the computation task gets unblocked by one of them and activated by the other one if they reach four.
+
+A DSD is used to select the center region of the buffer. This DSD is subsequently shifted to represent a rectengual area of the buffer that is shifted up, down, left or right by a number of elements up to the radius from the center. \texttt{@fmacs} instructions are used to multiply these values with the respective weight and add the results to the accumulator. The accumulator is then multiplied with the weight $w_0$ and added to the center region of the buffer to complete the iteration. This process is visualized in figure \ref{fig:stencil_algorithm_animation}.
+
+If only \texttt{@fmacs} instructions were used, the accumulator would have to be reset to zero after each iteration. To avoid this, a \texttt{@fmuls} instruction is used for the very first operation that writes to the accumulator to overwrite the values of the previous iteration.
+
+The dicrilet border is implemented by using a ring of PEs that only send and receive data from their neighbors and do not participate in the computation. If $r<t_w$ or $r<t_h$ the border PEs values are padded with zeros to fill their buffer.
+
+As a special case of the tiled algorithm, the radius-1 problem was further optimized by using \texttt{mem1d\_dsd}s instead of \texttt{mem4d\_dsd}s for the halo regions where the neighbors data is received as well as the data to send. Furthermore the shifted DSDs are precomputed and all DSDs are explicitly assigned to distinct DSRs. This allows for a significant reduction in the number of cycles per iteration.
+
+With a larger tile size, the explicit starting mechanism of the computation task can be skipped so that the computation task can be activated while the data is send and received. Explicitly specified task priorities lead to the computation task only being executed after all data is send and received. However, this only works for WSE-3.
+
 % \begin{algorithm}
 % \caption{Stencil Computation per Processing Element (PE)}
 % \begin{algorithmic}[1]
@@ -314,8 +335,7 @@ It becomes clear that for radius 1 the tiled stencil gets significantly slower t
 \section{Discussion}
 \section{Future work???}
 \begin{itemize}
-    \item use border PEs in a smarter way
-    \item radius > 1???
+    \item More optimization: use border PEs in a smarter way, use explicit dsr assignment,try to overlap communication and computation in the general algorithm
     \item JOR
     \item Gauss-Seidel / Red-Black implentation and SOR method
     \item multigrid methods
