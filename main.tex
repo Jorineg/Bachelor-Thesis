@@ -69,6 +69,7 @@ Used to solve:
 Different border critiera. Widely used is dicrilet border which we focus on in this wor.
 Jacobi method and Gauss-Seidel method. we implement Jacobi.
 \subsection{Cerebras hardware}
+Hardware: PE = router + CE
 wse2 + wse3, grid like arangement of pes, number of pes, memory per pe, links between pes, colors, simd operations, data structure descriptiors, data structure registers, input and output queues, limitations (e.g. cannot receive and send at same time, limited number of colors, input output queues and dsrs)
 memory banks, bank conflicts
 tasks, and task activation for async communication, task blocking
@@ -101,7 +102,7 @@ Two approaches were implemented:
 The computation for each element can be described as follows:
 \begin{equation}
     \label{eq:stencil_computation}
-    v^' = w_0 \cdot v + w_1 \cdot (v_north + v_east + v_south + v_west)
+    v^{'} = w_0 \cdot v + w_1 \cdot (v_{north} + v_{east} + v_{south} + v_{west})
 \end{equation}
 Where $v$ is the old value of the element, $v_north, v_east, v_south, v_west$ are the values of the four neighbors, $w_0, w_1$ are the stencil coefficients and $v^'$ is the new value of the element.
 
@@ -136,15 +137,18 @@ By computing the intermediate values $intermediate_1$ and $intermediate_2$ befor
     \end{algorithmic}
 \end{algorithm}
 While the reason for this performance benefit cannot be explained by the publicly available documentation from Cerebras, speculation from limited testing suggests that values seem to be avilable to a following operation only three cycles after they were written to.
+Our empirical analysis revealed a data dependency stall: an operation using a register as an operand is delayed until at least three cycles have passed since that register was last written to. While this behavior is not detailed in the public documentation, it consistently impacts performance. By reordering the computation to use intermediate variables (as shown in Algorithm X), we mitigate these stalls, reducing the cycle count for this computational segment from 10 to 7 cycles."
+
+Unfortunately, this does not work on WSE-3, since it allows at most one fabric DSD arguments per operation.
 
 \subsection{tiled any radius star shaped 2d}
 For a radius greater than one, the computation can be expressed as follows:
 \begin{equation}
     \label{eq:stencil_computation_tiled}
-    v^' = w_0 \cdot v + \sum_{i=1}^{r} w_i \cdot (v_{north,i} + v_{east,i} + v_{south,i} + v_{west,i})
+    v^{'} = w_0 \cdot v + \sum_{i=1}^{r} w_i \cdot (v_{north,i} + v_{east,i} + v_{south,i} + v_{west,i})
 \end{equation}
 Where $v$ is the old value of the element, $v_{north,i}, v_{east,i}, v_{south,i}, v_{west,i}$ are the values of the four neighbors at distance $i$ from the center and $w_0, w_1, \dots, w_r$ are the stencil coefficients.
-\subsection{Routing configuration}
+\subsubsection{Routing configuration}
 \begin{figure}
     \centering
     \includegraphics[width=0.5\linewidth]{plots/grid_visualization.png}
@@ -158,12 +162,12 @@ If colors 0 and 1 are used for data transfer from west to east, following functi
     f(row, col)=(row+col)\m2
 \end{equation}
 Where $f$ determines the color used to send data east and $1-f$ is used to receive from west. The same method is also applied for the other directions.
-\subsection{PE Program}
+\subsubsection{PE Program}
 
 \begin{figure}
     \centering
-    \animategraphics[loop,controls,width=0.5\linewidth]{1}{stencil_frames/frame_0}{0}{8}
-    \caption{Visualization of the stencil computation for a radius-2, tiled stencil.}
+    \animategraphics[autoplay,loop,controls=false,width=\linewidth]{0.5}{plots/stencil_frames/frame_0}{0}{8}
+    \caption{Visualization of the stencil computation for a radius-2, tiled stencil. (animation might not play in all pdf readers)}
     \label{fig:stencil_algorithm_animation}
 \end{figure}
 
@@ -174,11 +178,39 @@ Asynchronous \texttt{@fmovs} instructions are used for data exchange. To only st
 
 A DSD is used to select the center region of the buffer. This DSD is subsequently shifted to represent a rectengual area of the buffer that is shifted up, down, left or right by a number of elements up to the radius from the center. \texttt{@fmacs} instructions are used to multiply these values with the respective weight and add the results to the accumulator. The accumulator is then multiplied with the weight $w_0$ and added to the center region of the buffer to complete the iteration. This process is visualized in figure \ref{fig:stencil_algorithm_animation}.
 
-If only \texttt{@fmacs} instructions were used, the accumulator would have to be reset to zero after each iteration. To avoid this, a \texttt{@fmuls} instruction is used for the very first operation that writes to the accumulator to overwrite the values of the previous iteration.
+If only \texttt{@fmacs} instructions were used, the accumulator would have to be reset to zero after each iteration. To avoid this, a \texttt{@fmuls} instruction is used for the very first operation that writes to the accumulator to overwrite the values of the previous iteration \ref{tiled_algorithm_code}.
+
+\begin{algorithm}
+    \caption{Tiled algorithm code}
+    \begin{algorithmic}[1]
+        \State \textbf{for} $i$ from 1 to $r$
+        \State \quad if $i==1$
+        \State \quad \quad $accumulator \gets weights[i] \cdot buffer\_center\_dsd_{UP,i}$
+        \State \quad else
+        \State \quad \quad $accumulator \gets accumulator + weights[i] \cdot buffer\_center\_dsd_{UP,i}$
+        \State \quad $accumulator \gets accumulator + weights[i] \cdot buffer\_center\_dsd_{DOWN,i}$
+        \State \quad $accumulator \gets accumulator + weights[i] \cdot buffer\_center\_dsd_{LEFT,i}$
+        \State \quad $accumulator \gets accumulator + weights[i] \cdot buffer\_center\_dsd_{RIGHT,i}$
+        \State \textbf{end for}
+        \State \quad $buffer_center_dsd \gets buffer_center_dsd + weights[0] \cdot accumulator$
+    \end{algorithmic}
+\end{algorithm}
 
 The dicrilet border is implemented by using a ring of PEs that only send and receive data from their neighbors and do not participate in the computation. If $r<t_w$ or $r<t_h$ the border PEs values are padded with zeros to fill their buffer.
 
-As a special case of the tiled algorithm, the radius-1 problem was further optimized by using \texttt{mem1d\_dsd}s instead of \texttt{mem4d\_dsd}s for the halo regions where the neighbors data is received as well as the data to send. Furthermore the shifted DSDs are precomputed and all DSDs are explicitly assigned to distinct DSRs. This allows for a significant reduction in the number of cycles per iteration.
+As a special case of the tiled algorithm, the radius-1 problem was further optimized by using \texttt{mem1d\_dsd}s instead of \texttt{mem4d\_dsd}s for the halo regions where the neighbors data is received as well as the data to send. Furthermore the shifted DSDs are precomputed and all DSDs are explicitly assigned to distinct DSRs. This allows for a significant reduction in the number of cycles per iteration. As another optimization, fadds are used instead of fmacs and the multiplication is handled separately. This reduces the flop number from $9$ to $6$ per element and results in a perfomance improvement because the simd width for fadds is 2/4 on wse-2/3 while it is only 1 for fmacs \ref{tiled_algorithm_code_r1}. Note that the $buffer\_center\_dsd_{DIR,i}$ in the general version need to be created for each iteration of the loop while pre-computed DSDs are used in the optimized version.
+
+\begin{algorithm}
+    \caption{Radius-1, tiled algorithm code}
+    \begin{algorithmic}[1]
+        \State $accumulator \gets buffer\_center\_dsd \cdot weights[0]/weights[1]$
+        \State $accumulator \gets accumulator + buffer\_center\_dsd_{UP,1}$
+        \State $accumulator \gets accumulator + buffer\_center\_dsd_{DOWN,1}$
+        \State $accumulator \gets accumulator + buffer\_center\_dsd_{LEFT,1}$
+        \State $accumulator \gets accumulator + buffer\_center\_dsd_{RIGHT,1}$
+        \State $buffer\_center\_dsd \gets buffer\_center\_dsd + accumulator \cdot weights[1]$
+    \end{algorithmic}
+\end{algorithm}
 
 With a larger tile size, the explicit starting mechanism of the computation task can be skipped so that the computation task can be activated while the data is send and received. Explicitly specified task priorities lead to the computation task only being executed after all data is send and received. However, this only works for WSE-3.
 
@@ -249,13 +281,13 @@ With a larger tile size, the explicit starting mechanism of the computation task
 \section{Theretical performance evaluation and comparison against roofline model....}
 actual roofline plot
 \subsection{Radius 1, no tiling}
-We analyze the theoretical best performance of the algorithms given the hardware constraints.
+In this section the theoretical best performance of the implemented algorithms given the Cerebras hardware constraints is analyzed.
 We assume the data type to be float32.
 The cycle count for one iteration of the stencil is limited by following factors:
 \begin{itemize}
-    \item Communication throughput (cycles it takes to receive data i.e. amount of data/link capacity)
-    \item Computation time (update own value with received data)
-    \item Communication delay (Send value to neighbors)
+    \item Communication time, i.e. total amount of data send and received per iteration divided by link throughput
+    \item Computation time, i.e. total amount of computation per iteration divided by computation throughput
+    \item Communication delay, i.e. total amount of time spent waiting for data while no computation can be done
 \end{itemize}
 The CE must receive the values from its four neighbors. Since the link capacity between the router and CE is 32 bit per cycle, this will take four cycles in the best case.
 
@@ -263,41 +295,45 @@ The received data can immediately be used for computation as the \texttt{@fadds}
 
 Sending takes one cycle from CE to its router, another cycle from the router to its neighbors routers and a third cycle from these routers to the neighbors CEs. This results in three cycles for the communication delay.
 
-In total this results in seven cycles per stencil operation that could be archived in theory. Our implementation takes 15 cycles per iteration. This is due to two main constraints:
-\begin{itemize}
-    \item Data access of modified data is delayed by two cycles
-    \item Sending of float32 takes three cycles
-\end{itemize}
-There can be an additional computation delay observed. It behaves in the following way: Any execution of an operation that uses an operand that has been written two within the last two cycles gets delayed by one or two cycles so that it is executed not before three cycles after the last operands modification. This behavior cannot be explained by the publicly available documentation provided by Cerebras. It results in six cycles of delay if the algorithm is implemented like this:
-\begin{algorithm}
-\caption{Stencil algorithm with six delay cycles}
-\begin{algorithmic}[1]
-\Procedure{ComputeIteration}{$value, w_0, w_1$}
-\State $\Call{SendToNeighbours}{value}$
-\State $value \gets value*w_0$
-\State $value\gets value + w_1*\Call{ReceiveFromNorth}{}$
-\State $value\gets value + w_1*\Call{ReceiveFromEast}{}$
-\State $value\gets value + w_1*\Call{ReceiveFromSouth}{}$
-\State $value\gets value + w_1*\Call{ReceiveFromWest}{}$
-\EndProcedure
-\end{algorithmic}
-\end{algorithm}
-Here, lines 5, 6 and 7 each add two computation delay cycles since they rely on $value$ which is getting modified in lines 4 to 7.
+In total this results in seven cycles per stencil operation that could be archived in theory.
+Note that this is independent of the actual grid size (as long as it fits onto the WSE).
+% Our implementation takes 15 cycles per iteration. This is due to two main constraints:
+% \begin{itemize}
+%     \item Data access of modified data is delayed by two cycles
+%     \item Sending of float32 takes three cycles
+% \end{itemize}
+% There can be an additional computation delay observed. It behaves in the following way: Any execution of an operation that uses an operand that has been written two within the last two cycles gets delayed by one or two cycles so that it is executed not before three cycles after the last operands modification. This behavior cannot be explained by the publicly available documentation provided by Cerebras. It results in six cycles of delay if the algorithm is implemented like this:
+% \begin{algorithm}
+% \caption{Stencil algorithm with six delay cycles}
+% \begin{algorithmic}[1]
+% \Procedure{ComputeIteration}{$value, w_0, w_1$}
+% \State $\Call{SendToNeighbours}{value}$
+% \State $value \gets value*w_0$
+% \State $value\gets value + w_1*\Call{ReceiveFromNorth}{}$
+% \State $value\gets value + w_1*\Call{ReceiveFromEast}{}$
+% \State $value\gets value + w_1*\Call{ReceiveFromSouth}{}$
+% \State $value\gets value + w_1*\Call{ReceiveFromWest}{}$
+% \EndProcedure
+% \end{algorithmic}
+% \end{algorithm}
+% Here, lines 5, 6 and 7 each add two computation delay cycles since they rely on $value$ which is getting modified in lines 4 to 7.
 
-With this limitation in mind, we can modify the algorithm to first compute intermediate values based on two neighbor values before using these to compute the updated $value$. This results in only three additional delay cycles instead of six. Two in line seven, where $value$ is used but updated before in line 6, and one delay cycle in line 6 where $i_1$ is used which was updated 2 cycles before in line 4.
-\begin{algorithm}
-\caption{Stencil algorithm with only three delay cycles}
-\begin{algorithmic}[1]
-\Procedure{ComputeIteration}{$value, w_0, w_1$}
-\State $\Call{SendToNeighbours}{value}$
-\State $value \gets value*w_0$
-\State $i_1 \gets \Call{ReceiveFromNorth}{} + \Call{ReceiveFromEast}{}$
-\State $i_2 \gets \Call{ReceiveFromSouth}{} + \Call{ReceiveFromWest}{}$
-\State $value \gets value +i_1*w_1$
-\State $value \gets value +i_2*w_1$
-\EndProcedure
-\end{algorithmic}
-\end{algorithm}
+% With this limitation in mind, we can modify the algorithm to first compute intermediate values based on two neighbor values before using these to compute the updated $value$. This results in only three additional delay cycles instead of six. Two in line seven, where $value$ is used but updated before in line 6, and one delay cycle in line 6 where $i_1$ is used which was updated 2 cycles before in line 4.
+% \begin{algorithm}
+% \caption{Stencil algorithm with only three delay cycles}
+% \begin{algorithmic}[1]
+% \Procedure{ComputeIteration}{$value, w_0, w_1$}
+% \State $\Call{SendToNeighbours}{value}$
+% \State $value \gets value*w_0$
+% \State $i_1 \gets \Call{ReceiveFromNorth}{} + \Call{ReceiveFromEast}{}$
+% \State $i_2 \gets \Call{ReceiveFromSouth}{} + \Call{ReceiveFromWest}{}$
+% \State $value \gets value +i_1*w_1$
+% \State $value \gets value +i_2*w_1$
+% \EndProcedure
+% \end{algorithmic}
+% \end{algorithm}
+
+
 \subsection{Any radius and tiling}
 Similarly to before the total computation for one iteration can be split up into the same three fundamental steps. We now need to take the radius $r$, tile width $t_w$ and tile height $t_h$ into account.
 
