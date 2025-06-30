@@ -6,6 +6,7 @@
 \usepackage{algorithm}
 \usepackage{amsmath, amssymb}
 \usepackage{animate}
+\usepackage{subfig}
 
 \newcommand{\m}{\text{ mod }}
 
@@ -348,18 +349,22 @@ A larger problem size with a grid of 100x100, tile size of 10x10 and radius 5, r
 
 Because of the high flucuations in the cycle count in the first two iterations, we measure the cycle count in the following experiments as an average of the 3rd and 4th iteration.
 
-\begin{figure}
+\begin{figure}[h]
     \centering
-    \includegraphics[width=0.5\linewidth]{plots/non_tiled_iteration_stability.png}
-    \caption{Cycle count per iteration for non-tiled algorithm}
-    \label{fig:non_tiled_iteration_stability}
-\end{figure}
-
-\begin{figure}
-    \centering
-    \includegraphics[width=0.5\linewidth]{plots/tiled_iteration_stability.png}
-    \caption{Cycle count per iteration for tiled algorithm}
-    \label{fig:tiled_iteration_stability}
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{plots/non_tiled_iteration_stability.png}
+        \caption{Non-tiled algorithm}
+        \label{fig:non_tiled_iteration_stability}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{plots/tiled_iteration_stability.png}
+        \caption{Tiled algorithm}
+        \label{fig:tiled_iteration_stability}
+    \end{subfigure}
+    \caption{Cycle count per iteration for non-tiled and tiled algorithm}
+    \label{fig:iteration_stability}
 \end{figure}
 
 
@@ -416,20 +421,33 @@ We conducted several experiments to compare the performance of the implemented s
 As a CPU we used AMD EPYC 9554 64-Core Processor.
 As a GPU we used NVIDIA H100 SXM 80GB.
 
-for one experiment we kept the product of grid size and number of iterations constant. This results in a constant number of flops. (verify this!!!)
+For the first experiment, we ran the optimized stencil code on CPU and GPU and kept the product of grid size and number of iterations constant. This results in a constant number of total flops. 
 
-We compare the performance of CPU and GPU for different grid sizes and number of iterations and find that for very small grid sizes, the CPU is significantly faster than the GPU.
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\linewidth]{plots/gpu_cpu_constant_product.png}
+    \caption{Comparison of CPU and GPU performance for different grid sizes and number of iterations, so that $width \times height \times iterations = 10^10$.}
+    \label{fig:gpu_cpu_constant_product}
+\end{figure}
 
-We find that there is a the best ratio of grid size and iterations for GPU. For CPU it seems to that there is no single best ratio.
-But smaller grid sizes are better for CPU. This makes sense considering the cache sizes.
-Notably the GPU perfors up to 10x worse for non-ideal grid sizes compared to the ideal grid size, which we find to be 1e7.
+The results show that for most tested configurations, the gpu outperforms the cpu.
+However for very small tile sizes of 100x100 and large iteration counts of $10^6$, the cpu is faster.
+
+Furthermore we observe that GPU performance differs significantly depending on the racio between grid size and iterations with an optimal performance at $10^3$ iterations and a grid size of $10^7$. At this grid size, the data ($10^7$ numbers \times 4 bytes per number $=40MB$) fits perfectly into 50MB L2 cache of the H100. 
+
+Notably the GPU perfors up to 100x worse for non-ideal grid sizes with $10^4$ elements compared to the ideal grid size with $10^7$ elements.
+
+For CPU, the performance is not as sensitive to the ratio between grid size and iterations with just 2x worse performance for the least ideal grid size of $10^8$ elements compared to the ideal grid size of $10^6$ elements.
+
+Another notable observation is that the cpu is a lot more sensitive to different radii (which do change the number of flops) than the gpu. For the cpu and its optimal grid size of $10^6$, it takes 3.8 times longer to calculate the 4 times as computationally expensive stencil with radius 4 compared to the stencil with radius 1. For the GPU on the other hand, it takes only 1.1 times as long for its optimal grid size of $10^7$.
+This indicates that in their optimal configuration, the cpu is compute limited while the gpu is memory limited.
+
+As a second experiment, we compared our implementation for a grid size of $10^7$ to the optimized gpu and cpu implementation. To fit a size of $10^3\times10^4$ on the WSE-2 with dimensions of $750\times994$, we need a tile size of at least $2x11$ and on WSE-3 with dimensions of $750\times1200$ a tile size of at least $14x1$. As shown in the earlier experiments, degrade larger tile sizes always the performance so we used these minimum tile sizes.
+
+
+
+
 % Extrapolating the cerebras simulation results to this grid size, we find that the Cerebras implementation is about 100x faster on wse-2 and 140x faster on wse-3 than the GPU implementation. (calculate correct number here!!!)
-Lets select this fix our problem size to this gpu "compute optimal" grid size and compare the performance of the cerebras implementation to the gpu implementation.
-
-We know that smaller tiles sizes are always better on cerebras. We want to use the largest possible number of PEs.
-smallest possible tiles: wse3: 14x1 (or the other way round...?)
-wse2: 11x2 (or the other way round...?)
-(radius 1)
 for larger radii, we need to increase the shorter dimension of the tile.
 
 
