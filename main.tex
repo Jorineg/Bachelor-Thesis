@@ -143,6 +143,25 @@ Our empirical analysis revealed a data dependency stall: an operation using a re
 
 Unfortunately, this does not work on WSE-3, since it allows at most one fabric DSD arguments per operation.
 
+% table with operation for one grid point
+% columns: operation, cerebras op code, count, flops
+\begin{table}[h]
+    \centering
+    \begin{tabular}{|c|c|c|c|}
+        \hline
+        Operation & Cerebras Op Code & Count & Flops \\
+        \hline
+        add & \texttt{@fadds} & 4 & 4 \\
+        mul & \texttt{@fmuls} & 2 & 2 \\
+        \hline
+        total & & 6 & 6 \\
+        \hline
+    \end{tabular}
+    \caption{Operations for one grid point and iteration in the radius-1, non-tiled implementation.}
+    \label{tab:r1_non_tiled_operations}
+\end{table}
+
+
 \subsection{tiled any radius star shaped 2d}
 For a radius greater than one, the computation can be expressed as follows:
 \begin{equation}
@@ -200,7 +219,25 @@ If only \texttt{@fmacs} instructions were used, the accumulator would have to be
 
 The dicrilet border is implemented by using a ring of PEs that only send and receive data from their neighbors and do not participate in the computation. If $r<t_w$ or $r<t_h$ the border PEs values are padded with zeros to fill their buffer.
 
-As a special case of the tiled algorithm, the radius-1 problem was further optimized by using \texttt{mem1d\_dsd}s instead of \texttt{mem4d\_dsd}s for the halo regions where the neighbors data is received as well as the data to send. Furthermore the shifted DSDs are precomputed and all DSDs are explicitly assigned to distinct DSRs. This allows for a significant reduction in the number of cycles per iteration. As another optimization, fadds are used instead of fmacs and the multiplication is handled separately. This reduces the flop number from $9$ to $6$ per element and results in a perfomance improvement because the simd width for fadds is 2/4 on wse-2/3 while it is only 1 for fmacs \ref{tiled_algorithm_code_r1}. Note that the $buffer\_center\_dsd_{DIR,i}$ in the general version need to be created for each iteration of the loop while pre-computed DSDs are used in the optimized version.
+\begin{table}[h]
+    \centering
+    \begin{tabular}{|c|c|c|c|}
+        \hline
+        Operation & Cerebras Op Code & Count & Flops \\
+        \hline
+        fmac & \texttt{@fmacs} & 5r-1 & 10r-2 \\
+        mul & \texttt{@fmuls} & 1 & 1 \\
+        \hline
+        total & & 5r & 10r-1 \\
+        \hline
+    \end{tabular}
+    \caption{Operations for one grid point and iteration, tiled implementation with radius $r$.}
+    \label{tab:tiled_operations}
+\end{table}
+
+
+As a special case of the tiled algorithm, the radius-1 problem was further optimized by using \texttt{mem1d\_dsd}s instead of \texttt{mem4d\_dsd}s for the halo regions where the neighbors data is received as well as the data to send. Furthermore the shifted DSDs are precomputed and all DSDs are explicitly assigned to distinct DSRs. There are enough DSRs available so that each DSR is used for at most one DSD. This allows for a significant reduction in the number of cycles per iteration, since loading the DSDs into DSRs only needs to be done once, independent of the number of iterations. We still find that the DSDs used for reading the parts of the buffer that are send to the neighbors and the onces describing the halo regions for receiving need to be reloaded to the DSRs for each iteration. The load to DSR for these DSDs acts as a kind of reset and if not done, it leads to buffer overflows. The documentation doesn't specify this requirement and interestingly, it is not necessary for all DSDs. 
+As another optimization, \texttt{@fadds} are used instead of \texttt{@fmacs} and the multiplication is handled separately. This reduces the flop number from $9$ to $6$ per element and results in a perfomance improvement because the simd width for \texttt{@fadds} is 2/4 on wse-2/3 while it is only 1 for \texttt{@fmacs} \ref{tiled_algorithm_code_r1}. Note that the shifted DSDs$buffer\_center\_dsd_{DIR,i}$ in the general version need to be created for each iteration of the loop while pre-computed DSDs are used in this optimized version.
 
 We refer to this as the r1 optimized version of the tiled algorithm.
 The tiled algorithm is implemented so that it automatically selects the r1 optimized version if the radius is 1.
@@ -217,6 +254,22 @@ For all experiments in this work, the r1 optimized version is used whenever appl
         \State $buffer\_center\_dsd \gets buffer\_center\_dsd + accumulator \cdot weights[1]$
     \end{algorithmic}
 \end{algorithm}
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{|c|c|c|c|}
+        \hline
+        Operation & Cerebras Op Code & Count & Flops \\
+        \hline
+        add & \texttt{@fadds} & 4 & 4 \\
+        mul & \texttt{@fmuls} & 2 & 2 \\
+        \hline
+        total & & 6 & 6 \\
+        \hline
+    \end{tabular}
+    \caption{Operations for one grid point and iteration, r1 optimized tiled implementation.}
+    \label{tab:tiled_operations_r1_optimized}
+\end{table}
 
 With a larger tile size, the explicit starting mechanism of the computation task can be skipped so that the computation task can be activated while the data is send and received. Explicitly specified task priorities lead to the computation task only being executed after all data is send and received. However, this only works for WSE-3.
 
@@ -282,11 +335,32 @@ We examine to what extend extrapolation is possible in the first two experiments
 
 We count the cycles used per iteration in the simulator and use this together with the clock speed of the WSE to calculate the time per iteration.
 
-One difference between the simulator and the real hardware is that the simulator does use single clock for all cores, while the real hardware has a separate clock for each core. (verify this!!!) Because these clocks are not perfectly synchronized, especially experiments with a large number of PEs could result in slightly higher cycle counts and if the implementation does not take this into account properly, even different numerical results.
+One difference between the simulator and the real hardware is that the simulator does use a single clock for all cores, while the real hardware has a separate clock for each core. (verify this!!!) Because these clocks are not perfectly synchronized, especially experiments with a large number of PEs could differ in the cycle count. Although this is not guaranteed for our algorithm, (source) find that in practice the slighly desynchronized clocks improve overall performance compared to the simulator. 
 
 \subsection{Stability of cycle count per iteration}
 For this experiment, we fix the grid size, tile size and radius and run the simulation for different number of iterations.
-Interestingly, the cycle count per iteration is not perfectly stable, but fluctuates slightly.
+After two iterations of varying cycle count, the cycle is mostly stable.
+For a grid size of 10x10, the cycle count per iteration is $16\pm1$ on WSE-2 and $23\pm1$ on WSE-3.
+
+For a grid of 10x10, and a tile size of 1x1 and radius 1, the tiled algorithm achives $127\pm0$ cycles per iteration on WSE-2 and $156\pm1$ cycles per iteration on WSE-3.
+
+A larger problem size with a grid of 100x100, tile size of 10x10 and radius 5, results in a cycle count per iteration of $3353\pm20$ on WSE-2 and $3377\pm5$ on WSE-3.
+
+Because of the high flucuations in the cycle count in the first two iterations, we measure the cycle count in the following experiments as an average of the 3rd and 4th iteration.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\linewidth]{plots/non_tiled_iteration_stability.png}
+    \caption{Cycle count per iteration for non-tiled algorithm}
+    \label{fig:non_tiled_iteration_stability}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\linewidth]{plots/tiled_iteration_stability.png}
+    \caption{Cycle count per iteration for tiled algorithm}
+    \label{fig:tiled_iteration_stability}
+\end{figure}
 
 
 \subsection{Overhead for more PEs}
@@ -294,9 +368,23 @@ A very interesting question is how the performance scales with the number of PEs
 As each PE is independent from the others, the time per iteration should be independent from the number of PEs.
 This can be confirmed by the tests on the simulator up to a PE count of 400 (20x20).
 For a very small number of PEs, the cycle count is slightly faster, but is constant for larger numbers of PEs.
-(citation here) shows that this holds for a 3d stencil that is tested on real hardware.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\linewidth]{plots/pe_overhead_non_tiled.png}
+    \caption{Cycle count per iteration for different grid sizes for the non-tiled stencil. For very small grid sizes, the cycle count is lower. For larger grid sizes, the cycle count is constant.}
+    \label{fig:pe_overhead}
+\end{figure}
+
+(citation here) shows that for a 3d stencil that is tested on real hardware.
 
 We therefore expect that our implementation also scales perfectly (or nearly perfectly) on the real hardware.
+
+A possible explanation for significantly faster iterations on the non-tiled stencil in the case of a 3x3 grid size is as follows. Since only the center PE is computing and all other 8 PEs are border PEs do communication only, the center PE doesn't have to wait to receive the data from its neighbors, but can start the next iteration as soon as the previous iteration finishes.
+
+So there is no communication-delay as explained in section \ref{sec:theoretical_performance_evaluation_and_comparison_against_roofline_model}.
+
+For the following experiments we set the parameters so that there are always at least 3x3 PEs that do computation. In this case, the center PE has to wait for all four neighbors that also do real computation.
 
 \subsection{Maximum tiling size}
 The maximum tiling size that fits into the memory of a PE is limited by the number of memory banks and the size of the data structure registers.
@@ -315,7 +403,13 @@ This allows for a very optimized implementation, that doesn't require any runtim
 It is therefore significantly faster than the tiled algorithm for radius 1.
 However, the non-tiled algorithm is naturally limited to a radius of 1 and a grid size not larger than the WSE dimensions.
 
-16 cycles vs 127 cycles.
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\linewidth]{plots/algo_comparison.png}
+    \caption{Comparison of non-tiled and tiled algorithm for radius 1.}
+    \label{fig:algo_comparison}
+\end{figure}
+
 
 \subsection{Comparison of Cerebras and traditional HPC-Arcitectures}
 We conducted several experiments to compare the performance of the implemented stencils on the Cerebras WSE with highly optimized Devito implementations on CPU and GPU. The experiments were conducted in Vast.ai cloud.
@@ -329,16 +423,26 @@ We compare the performance of CPU and GPU for different grid sizes and number of
 We find that there is a the best ratio of grid size and iterations for GPU. For CPU it seems to that there is no single best ratio.
 But smaller grid sizes are better for CPU. This makes sense considering the cache sizes.
 Notably the GPU perfors up to 10x worse for non-ideal grid sizes compared to the ideal grid size, which we find to be 1e7.
-Extrapolating the cerebras simulation results to this grid size, we find that the Cerebras implementation is about 100x faster on wse-2 and 140x faster on wse-3 than the GPU implementation. (calculate correct number here!!!)
+% Extrapolating the cerebras simulation results to this grid size, we find that the Cerebras implementation is about 100x faster on wse-2 and 140x faster on wse-3 than the GPU implementation. (calculate correct number here!!!)
+Lets select this fix our problem size to this gpu "compute optimal" grid size and compare the performance of the cerebras implementation to the gpu implementation.
 
-h100 1e3 x 1e4 grid size, r=1: 0.0000791 s/iter
-cerebras: 0.000000711
+We know that smaller tiles sizes are always better on cerebras. We want to use the largest possible number of PEs.
+smallest possible tiles: wse3: 14x1 (or the other way round...?)
+wse2: 11x2 (or the other way round...?)
+(radius 1)
+for larger radii, we need to increase the shorter dimension of the tile.
+
+
+
+h100 1e3 x 1e4 grid size, r=1: 0.0000791 s/iter -> 12.600 iter/s
+
+
+
 
 
 This speedup gets even greater for the less ideal grid sizes for gpu.
 
 Comparing the GPU implementation with our non-tiled algorithm using the largest possible grid size (WSE dimensions), we find that the Cerebras implementation is about 800x faster than the GPU implementation. (calculate correct number here!!!)
-
 
 \subsection{Comparison of r1-optimized and non-optimized tiled algorithm}
 We find that the r1-optimized tiled algorithm is significantly faster than the non-optimized tiled algorithm.
