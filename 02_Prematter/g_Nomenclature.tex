@@ -11,6 +11,10 @@
 \nomenclature[I]{$i$}{Index für Komponenten}{}{}
 \nomenclature[I]{$j$}{Index für Komponenten}{}{}
 \nomenclature[I]{$k$}{Index der Strukturgruppe}{}{}
+\nomenclature[I]{$north$}{Northern neighbor in stencil computation}{}{}
+\nomenclature[I]{$east$}{Eastern neighbor in stencil computation}{}{}
+\nomenclature[I]{$south$}{Southern neighbor in stencil computation}{}{}
+\nomenclature[I]{$west$}{Western neighbor in stencil computation}{}{}
 %------------------------------
 % CONSTANTS
 %------------------------------
@@ -25,6 +29,14 @@
 \nomenclature[L]{$B$}{Parameter in Antoine-Gleichung}{}{\si{\kelvin}}
 \nomenclature[L]{$B$}{Zweiter Virialkoeffizient (Leiden-Form)}{}{\si{\cubic\metre\per\mole}}
 \nomenclature[L]{$B'$}{Zweiter Virialkoeffizient (Berlin-Form)}{}{\si{\per\pascal}}
+\nomenclature[L]{$r$}{Stencil radius}{}{$1$}
+\nomenclature[L]{$t_w$}{Tile width}{}{$1$}
+\nomenclature[L]{$t_h$}{Tile height}{}{$1$}
+\nomenclature[L]{$v$}{Grid value/element}{}{$1$}
+\nomenclature[L]{$v'$}{Updated grid value/element}{}{$1$}
+\nomenclature[L]{$w_0, w_1, \ldots, w_r$}{Stencil coefficients}{}{$1$}
+\nomenclature[L]{$f$}{Coloring function for PE communication}{}{$1$}
+\nomenclature[L]{$s$}{SIMD width}{}{$1$}
 %------------------------------
 % DIMENSIONLESS NUMBERS
 %------------------------------
@@ -34,6 +46,7 @@
 %------------------------------
 \nomenclature[O]{$\nabla$}{Nabla-Operator}{}{$\left[\frac{\partial}{\partial x_1}, \dots, \frac{\partial}{\partial x_n}\right]^T$}
 \nomenclature[O]{$\rot$}{Rotationsoperator}{}{$\rot \vec{g} = \nabla \times \vec{g}$}
+\nomenclature[O]{$\bmod$}{Modulo operator}{}{$a \bmod b = a - b \lfloor a/b \rfloor$}
 %------------------------------
 % SUPERSCRIPTS
 %------------------------------
@@ -47,3 +60,5 @@
 \nomenclature[Z]{$0$}{Reinstoff}{}{}
 \nomenclature[Z]{$0$}{zu Beginn der Reaktion}{}{}
 \nomenclature[Z]{$\textrm{c}$}{Kritisch}{}{}
+\nomenclature[Z]{$\textrm{2}$}{WSE-2 architecture}{}{}
+\nomenclature[Z]{$\textrm{3}$}{WSE-3 architecture}{}{}

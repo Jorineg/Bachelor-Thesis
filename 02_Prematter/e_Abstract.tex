@@ -8,25 +8,29 @@
 % GERMAN
 %------------------------------
 \begin{otherlanguage}{ngerman}
-\section*{Deutsch}
-%------------------------------
-% ENTER TEXT HERE
-%------------------------------
-\blindtext[2]
-%------------------------------
-\\[2ex]
-\textbf{Schlüsselwörter:} \itshape \germankeywords
+\section*{Zusammenfassung}
+Effiziente Stencil-Berechnungen sind entscheidend für Bereiche wie Materialwissenschaft, Klimamodellierung oder Aerodynamik. Neue Hardware-Beschleuniger, wie die Cerebras Wafer Scale Engine (WSE), bieten ein neues Programmierparadigma, das effizientere Stencil-Berechnungen im Vergleich zu traditionellen Ansätzen mit CPUs oder GPUs ermöglicht.
+
+Diese Arbeit untersucht das Design, die Implementierung und die Leistungsanalyse von 2D sternförmigen Stencils auf der Cerebras WSE-Architektur. Zwei verschiedene Implementierungen werden entwickelt: eine latenz-optimierte, direkt abgebildete Implementierung für Radius-1-Stencils und eine flexible, gekachelte Implementierung für Stencils mit variablem Radius.
+
+Die Hauptbeiträge umfassen eine detaillierte Leistungsanalyse beider Implementierungen, die Untersuchung des Parameterraums des gekachelten Algorithmus und den Vergleich der WSE-Implementierungen mit hochoptimierten Codes für moderne Mehrkern-CPUs und High-End-GPUs. Zusätzlich wird ein vereinfachtes Leistungsmodell für die implementierten Stencil-Operatoren vorgestellt, das wichtige architektonische Merkmale der WSE berücksichtigt.
+
+Die Ergebnisse zeigen erhebliche Leistungsvorteile der WSE-Architektur für Stencil-Berechnungen mit Beschleunigungen von bis zu 800x im Vergleich zu GPU-Implementierungen für bestimmte Konfigurationen, was das Potenzial spezialisierter Hardware-Beschleuniger für rechnerische Wissenschaftsanwendungen unterstreicht.
+
+\section*{Schlüsselwörter:} \itshape \germankeywords
 \end{otherlanguage}
 %------------------------------
 % ENGLISH
 %------------------------------
 \begin{otherlanguage}{english}
-\section*{English}
-%------------------------------
-% ENTER TEXT HERE
-%------------------------------
+\section*{Abstract}
 Efficient stencil computation is essential to fields as material science, climate modeling or aero dynamics. New hardware accelerators, like the Cerebras wafer scale engine (WSE), offer a new programming paradigm that allows more efficient stencil computation compared to traditional approaches using CPUs or GPUs.
-%------------------------------
-\\[2ex]
-\textbf{Keywords:} \itshape \englishkeywords
+
+This thesis investigates the design, implementation, and performance analysis of 2D star-shaped stencils on the Cerebras WSE architecture. Two distinct implementations are developed: a latency-optimized, directly-mapped implementation for radius-1 stencils and a flexible, tiled implementation for variable-radius stencils. 
+
+The main contributions include a detailed performance analysis comparing both implementations, investigating the tiled algorithm's parameter space, and benchmarking WSE implementations against highly optimized code for modern multi-core CPUs and high-end GPUs. Additionally, a simplified performance model for the implemented stencil operators is presented, accounting for key architectural features of the WSE.
+
+The results demonstrate significant performance advantages of the WSE architecture for stencil computations, with speedups of up to 800x compared to GPU implementations for certain configurations, highlighting the potential of specialized hardware accelerators for computational science applications.
+
+\section*{Keywords:} \itshape \englishkeywords
 \end{otherlanguage}
