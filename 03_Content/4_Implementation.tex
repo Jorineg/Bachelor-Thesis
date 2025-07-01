@@ -135,7 +135,7 @@ If only \texttt{@fmacs} instructions were used, the accumulator would have to be
     \caption{Tiled algorithm code}\label{alg:tiled_algorithm}
 \end{algorithm}
 
-The dicrilet border is implemented by using a ring of \acp{pe} that only send and receive data from their neighbors and do not participate in the computation. If $r<t_w$ or $r<t_h$ the border \acp{pe} values are padded with zeros to fill their buffer.
+The dicrilet border is implemented by using a ring of \acp{pe} that only send and receive data from their neighbors and do not participate in the computation. If $r<t_w$ or $r<t_h$ the border \acp{pe} values are padded with zeros to fill their buffer. Re refer to the \acp{pe} that only send and receive data from their neighbors as border \acp{pe}, the ones that participate in the computation as inner \acp{pe} and the set of both of these as active \acp{pe}.
 
 \begin{table}[h]
     \centering
