@@ -9,9 +9,11 @@ Used to solve:
     \item Heat Equation: describes how temperature T diffuses through a material over time t. Used e.g. for Semiconductor Chip Design and Materials Science
     \item Poisson's Equation: relates the electric potential φ to a charge distribution ρ. It's used to find the voltage field in a region given a set of fixed charges. Used e.g. for Sensor Design and Particle Accelerators.
 \end{itemize}
-Different border critiera. Widely used is dicrilet border which we focus on in this wor.
+Different border critiera. Widely used is dicrilet border which we focus on in this work.
 Jacobi method and Gauss-Seidel method. we implement Jacobi.
 \subsection{Cerebras hardware}
+The Cerebras \ac{WSE} has very distinct characteristics not only compared to \acp{CPU} but also to \acp{GPU}.
+Instead of seperated compute cores and memory, Cerebras \ac{WSE} features several hundred thousand Compute elements that each consist of \qty 
 Hardware: \ac{pe} = router + \ac{ce}
 wse2 + wse3, grid like arangement of \acp{pe}, number of \acp{pe}, memory per \ac{pe}, links between \acp{pe}, colors, simd operations, data structure descriptiors, data structure registers, input and output queues, limitations (e.g. cannot receive and send at same time, limited number of colors, input output queues and dsrs)
 memory banks, bank conflicts
