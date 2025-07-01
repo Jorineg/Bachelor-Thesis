@@ -1,15 +1,20 @@
-# Performance Comparison: CPU, GPU, and Cerebras Non-Tiled Implementation
-# =========================================================================
+# ===========================================================================
+
 # WSE-2 Grid (750 x 994):
-#   CPU: 5,493 IPS
-#   GPU: 65,718 IPS
+#   CPU: 8,080 IPS
+#   GPU: 74,644 IPS
 #   Cerebras Non-Tiled: 68,750,000 IPS
 
-# WSE-3 Grid (750 x 1200):
-#   CPU: 3,951 IPS
-#   GPU: 62,745 IPS
+# WSE-3 Grid (762 x 1176):
+#   CPU: 6,716 IPS
+#   GPU: 70,398 IPS
 #   Cerebras Non-Tiled: 47,826,087 IPS
-# =========================================================================
+# ===========================================================================
+
+# Speedups:
+# WSE-2: GPU vs CPU: 9×, Cerebras vs GPU: 921×, Cerebras vs CPU: 8508×
+# WSE-3: GPU vs CPU: 10×, Cerebras vs GPU: 679×, Cerebras vs CPU: 7121×
+# ===========================================================================
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -21,23 +26,23 @@ matplotlib.use('Agg')
 CEREBRAS_CLOCK_RATE = 1.1e9  # 1.1 GHz
 
 # WSE-2 data (750 x 994 grid)
-wse2_cpu_time = 1.8206  # seconds for 10,000 iterations
+wse2_cpu_time = 1.2376  # seconds for 10,000 iterations
 wse2_cpu_iterations = 10000
 wse2_cpu_ips = wse2_cpu_iterations / wse2_cpu_time
 
-wse2_gpu_time = 1.5219  # seconds for 100,000 iterations
+wse2_gpu_time = 1.3397  # seconds for 100,000 iterations
 wse2_gpu_iterations = 100000
 wse2_gpu_ips = wse2_gpu_iterations / wse2_gpu_time
 
 wse2_cerebras_cycles_per_iter = 16
 wse2_cerebras_ips = CEREBRAS_CLOCK_RATE / wse2_cerebras_cycles_per_iter
 
-# WSE-3 data (750 x 1200 grid)
-wse3_cpu_time = 2.5307  # seconds for 10,000 iterations
+# WSE-3 data (762 x 1176 grid - corrected size)
+wse3_cpu_time = 1.4889  # seconds for 10,000 iterations
 wse3_cpu_iterations = 10000
 wse3_cpu_ips = wse3_cpu_iterations / wse3_cpu_time
 
-wse3_gpu_time = 1.5938  # seconds for 100,000 iterations
+wse3_gpu_time = 1.4205  # seconds for 100,000 iterations
 wse3_gpu_iterations = 100000
 wse3_gpu_ips = wse3_gpu_iterations / wse3_gpu_time
 
@@ -53,7 +58,7 @@ print(f"  CPU: {wse2_cpu_ips:,.0f} IPS")
 print(f"  GPU: {wse2_gpu_ips:,.0f} IPS")
 print(f"  Cerebras Non-Tiled: {wse2_cerebras_ips:,.0f} IPS")
 
-print("\nWSE-3 Grid (750 x 1200):")
+print("\nWSE-3 Grid (762 x 1176):")
 print(f"  CPU: {wse3_cpu_ips:,.0f} IPS")
 print(f"  GPU: {wse3_gpu_ips:,.0f} IPS")
 print(f"  Cerebras Non-Tiled: {wse3_cerebras_ips:,.0f} IPS")
@@ -77,7 +82,7 @@ print("=" * 75)
 print()
 
 # Prepare data for plotting
-labels = ['WSE-2 Grid\n(750×994)', 'WSE-3 Grid\n(750×1200)']
+labels = ['WSE-2 Grid\n(750×994)', 'WSE-3 Grid\n(762×1176)']
 cpu_data = [wse2_cpu_ips, wse3_cpu_ips]
 gpu_data = [wse2_gpu_ips, wse3_gpu_ips]
 cerebras_data = [wse2_cerebras_ips, wse3_cerebras_ips]
