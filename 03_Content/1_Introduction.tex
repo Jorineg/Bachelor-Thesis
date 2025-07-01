@@ -1,0 +1,32 @@
+\chapter{Introduction}
+- motivation: why are stencil coputations important 
+- problem: why is efficient implementation on cerebres difficult, what are the chances?
+
+challenges:
+- Cerebras uses Cerebras Software Language (CSL) for the WSE chip. no compiler for higher level languages like stencil dsls to CSL
+- also: prgoramming paradigm is vastly differnet. no shared memory. no cache. each PE completely indendent from others.
+
+-> needs hand crafted kernel/prgramm/solution (?) for every problem
+
+difficulties:
+- hardware new and limited access
+- language new, not widely adopted, very limited documentation
+
+We identify following research questions:
+\begin{itemize}
+    \item How can 2D star-shaped stencils be mapped efficiently to the Cerebras WSE-Architecture and what are the key design choices?
+    \item How does the performance of a specialized (radius 1, non-tiled) implementation scale compared to a generalized (tiled, variable radius) implementation on the WSE?
+    \item How does the performance of the Cerepbras-Implentation position itself compared to highly optimized implementations on traditional HPC-Arcitectures (CPU, GPU)? 
+\end{itemize}
+
+The main contributions of this thesis are::
+\begin{itemize}
+    \item The design, implementation, and analysis of two distinct implementations for 2D star-shaped stencils on the Cerebras WSE:
+    \begin{itemize}
+        \item A latency-optimized, directly-mapped implementation for radius-1 stencils.
+        \item A flexible, tiled implementation for varibale-radius stencils.
+    \end{itemize}
+    \item A detailed performance analysis comparing the two implementations and investigating the tiled algorithms parameter space. 
+    \item A performance comparison of the WSE-implementations with highly optimized, devito generated code for modern multi core CPUs and high-end GPUs.
+    \item A simplified performance model for the implemented stencil operators on the WSE, which accounts for key architectural features.
+\end{itemize} 

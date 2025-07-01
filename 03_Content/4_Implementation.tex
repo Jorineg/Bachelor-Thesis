@@ -1,0 +1,14 @@
+\chapter{Implementation}
+Since communication on Cerebras hardware is limited to the four direct neighbor elements, stencil algorithms that for a single iteration require data from PEs that are not direct neighbors are far more complex to implement and come with significant communication overhead. For that reason, we limit the scope of this work to update functions that require only communication with the direct neighboring PEs. This means that the radius of the stencil must be small or equal to the tile size, specifically
+\begin{equation}    
+\label{eq:radius_constraint}
+r \leq \min(t_w, t_h)
+\end{equation}
+
+For the simple case where $t_w=t_h=1$, this results in a radius of 1.
+
+Two approaches were implemented:
+\begin{itemize}
+    \item In specialized version, that restricts the radius to one represents each element of the grid with one PE of the WSE. This specialization allows a heavily optimized implementation, but restricts the maximum problem size to the WSE hardware dimensions.
+    \item A general implementation maps multiple elements of the underlying grid, i.e., a tile size of $t_w, t_h$, to a single PE and therefore allows for grid sizes that significantly exceed the WSE hardware dimensions and a radius greater than one as long as \ref{eq:radius_constraint} is satisfied. 
+\end{itemize} 
