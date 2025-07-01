@@ -31,7 +31,7 @@ The coloring rule can be described as following function $f:\mathbb{N}\times\mat
 and visualized in \autoref{fig:r1_stencil_coloring}.
 \begin{figure}
     \centering
-    \includegraphics[width=0.5\linewidth]{plots/r1-stencil-coloring.png}
+    \includegraphics[width=0.5\linewidth]{r1-stencil-coloring.png}
     \caption{Visualization of the coloring pattern for radius-1 non-tiled stencil. Each color represents a distinct routing color (0-5) used for conflict-free communication between PEs. The numbers in each cell show the color index computed by $f(x,y) = (x + 2y) \bmod 6$.}
     \label{fig:r1_stencil_coloring}
 \end{figure}
@@ -87,7 +87,7 @@ Where $v$ is the old value of the element, $v_{north,i}, v_{east,i}, v_{south,i}
 \subsection{Routing configuration}
 \begin{figure}
     \centering
-    \includegraphics[width=0.5\linewidth]{plots/grid_visualization.png}
+    \includegraphics[width=0.5\linewidth]{grid_visualization.png}
     \caption{Visualization of data stored within one PE for tiled stencil. $t_w=5$, $t_h=3$ and $r=2$. The green area is the tile of the grid stored within this PE. The yellow area is what needs to be received from the neighboring PEs in order to compute one iteration. The part surrounded in orange is what needs to be send to the northern PE and and the purple area is what needs to be send to the western PE.}
     \label{fig:grid_visualization}
 \end{figure}
@@ -103,7 +103,7 @@ Where $f$ determines the color used to send data east and $1-f$ is used to recei
 
 \begin{figure}
     \centering
-    \animategraphics[autoplay,loop,controls=false,width=\linewidth]{0.5}{plots/stencil_frames/frame_0}{0}{8}
+    \animategraphics[autoplay,loop,controls=false,width=\linewidth]{0.5}{stencil_frames/frame_0}{0}{8}
     \caption{Visualization of the stencil computation for a radius-2, tiled stencil. (animation might not play in all pdf readers)}
     \label{fig:stencil_algorithm_animation}
 \end{figure}

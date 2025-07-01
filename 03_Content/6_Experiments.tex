@@ -35,14 +35,14 @@ Because of the high flucuations in the cycle count in the first two iterations, 
     \centering
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{plots/non_tiled_iteration_stability.png}
+        \includegraphics[width=\textwidth]{non_tiled_iteration_stability.png}
         \caption{Non-tiled algorithm}
         \label{fig:non_tiled_iteration_stability}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{plots/tiled_iteration_stability.png}
+        \includegraphics[width=\textwidth]{tiled_iteration_stability.png}
         \caption{Tiled algorithm}
         \label{fig:tiled_iteration_stability}
     \end{subfigure}
@@ -58,7 +58,7 @@ For a very small number of PEs, the cycle count is slightly faster, but is const
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.5\linewidth]{plots/pe_overhead_non_tiled.png}
+    \includegraphics[width=0.5\linewidth]{pe_overhead_non_tiled.png}
     \caption{Cycle count per iteration for different grid sizes for the non-tiled stencil. For very small grid sizes, the cycle count is lower. For larger grid sizes, the cycle count is constant.}
     \label{fig:pe_overhead}
 \end{figure}
@@ -92,7 +92,7 @@ However, the non-tiled algorithm is naturally limited to a radius of 1 and a gri
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.5\linewidth]{plots/algo_comparison.png}
+    \includegraphics[width=0.5\linewidth]{algo_comparison.png}
     \caption{Comparison of non-tiled and tiled algorithm for radius 1.}
     \label{fig:algo_comparison}
 \end{figure}
@@ -106,7 +106,7 @@ For the first experiment, we ran the optimized stencil code on CPU and GPU and k
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.5\linewidth]{plots/gpu_cpu_constant_product.png}
+    \includegraphics[width=0.5\linewidth]{gpu_cpu_constant_product.png}
     \caption{Comparison of CPU and GPU performance for different grid sizes and number of iterations, so that $width \times height \times iterations = \num{1e10}$.}
     \label{fig:gpu_cpu_constant_product}
 \end{figure}

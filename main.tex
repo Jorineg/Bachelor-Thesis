@@ -39,7 +39,7 @@
     open=right,					% chapter always starts on right side
     paper=a4, 					% paper format
     parskip=half, 				% distance between paragraphs
-    twoside, 					% twoside document  
+    oneside, 					% oneside document  
 ]{scrreprt}
 %------------------------------
 % PREAMBLE
@@ -67,7 +67,9 @@
 	%------------------------------
 	% DEDICATION (dissertation) OR THESIS TASK (thesis)
 	%------------------------------	
-	\ifthenelse{\boolean{isDiss}}{\input{02_Prematter/b_Dedication}\cleardoublepage}{\includepdf[pages={1-}]{02_Prematter/b_Task}}
+	\ifthenelse{\boolean{isDiss}}{\input{02_Prematter/b_Dedication}\cleardoublepage}{%
+		% \includepdf[pages={1-}]{02_Prematter/b_Task} % Comment out if no task PDF available
+	}
 	\input{02_Prematter/c_Declaration}
 	\cleardoublepage
 \end{spacing}
@@ -93,13 +95,13 @@
 	\listoffigures 				% make list of figures
 	\listoftables 				% make list of tables
 	\listofalgorithms 			% make list of algorithms
-	\lstlistoflistings			% make list of codes
+	% \lstlistoflistings			% make list of codes
 	\include{02_Prematter/g_Nomenclature} % include all symbols in nomenclature
 	\printnomenclature 			% make list of symbols
 	\cleardoublepage
 	\input{02_Prematter/h_Abbreviations}
-	\listoftodos				% make list of todos
-	\todototoc					% add list of todos to list of contents	
+	% \listoftodos				% make list of todos
+	% \todototoc					% add list of todos to list of contents	
 	\cleardoublepage
 \end{spacing}
 %------------------------------
@@ -130,7 +132,7 @@
 %------------------------------
 % INDEX
 %------------------------------
-\printindex
+% \printindex
 %------------------------------
 % END DOCUMENT
 %------------------------------
