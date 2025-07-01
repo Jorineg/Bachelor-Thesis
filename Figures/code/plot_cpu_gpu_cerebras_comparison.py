@@ -1,3 +1,31 @@
+# Iterations per Second (IPS) by Hardware and Radius:
+# =======================================================
+# CPU:
+#   r=1: 312.891 IPS
+#   r=2: 189.491 IPS
+#   r=3: 136.717 IPS
+#   r=4: 115.075 IPS
+
+# GPU:
+#   r=1: 12642.225 IPS
+#   r=2: 12165.450 IPS
+#   r=3: 11210.762 IPS
+#   r=4: 11185.682 IPS
+
+# WSE2:
+#   r=1: 3942652.330 IPS
+#   r=2: 1812191.104 IPS
+#   r=3: 1098901.099 IPS
+#   r=4: 642148.278 IPS
+
+# WSE3:
+#   r=1: 4526748.971 IPS
+#   r=2: 1472556.894 IPS
+#   r=3: 941780.822 IPS
+#   r=4: 595238.095 IPS
+# =======================================================
+
+
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
@@ -43,6 +71,29 @@ wse3_cycles_per_iter = {
     4: 1848,
 }
 wse3_ips = {r: CEREBRAS_CLOCK_RATE / c for r, c in wse3_cycles_per_iter.items()}
+
+# Print all iterations per second values with 3 decimal places
+print("Iterations per Second (IPS) by Hardware and Radius:")
+print("=" * 55)
+
+print("CPU:")
+for r in sorted(cpu_ips.keys()):
+    print(f"  r={r}: {cpu_ips[r]:.3f} IPS")
+
+print("\nGPU:")
+for r in sorted(gpu_ips.keys()):
+    print(f"  r={r}: {gpu_ips[r]:.3f} IPS")
+
+print("\nWSE2:")
+for r in sorted(wse2_ips.keys()):
+    print(f"  r={r}: {wse2_ips[r]:.3f} IPS")
+
+print("\nWSE3:")
+for r in sorted(wse3_ips.keys()):
+    print(f"  r={r}: {wse3_ips[r]:.3f} IPS")
+
+print("=" * 55)
+print()
 
 # Prepare data for plotting
 # To disable a hardware platform, simply comment it out in the list below
