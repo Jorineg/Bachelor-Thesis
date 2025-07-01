@@ -88,7 +88,7 @@ Where $v$ is the old value of the element, $v_{north,i}, v_{east,i}, v_{south,i}
 \begin{figure}
     \centering
     \includegraphics[width=0.5\linewidth]{grid_visualization.png}
-    \caption{Visualization of data stored within one \ac{pe} for tiled stencil. $t_w=5$, $t_h=3$ and $r=2$. The green area is the tile of the grid stored within this \ac{pe}. The yellow area is what needs to be received from the neighboring \acp{pe} in order to compute one iteration. The part surrounded in orange is what needs to be send to the northern \ac{pe} and and the purple area is what needs to be send to the western \ac{pe}.}
+    \caption{Data layout within a single PE for a tiled stencil with tile size $t_w=5, t_h=3$ and radius $r=2$. The green area represents the PE's assigned grid tile. The surrounding yellow halo region stores data received from neighbors, while the orange and purple outlines show the data regions sent to the northern and western PEs, respectively.}
     \label{fig:grid_visualization}
 \end{figure}
 The communication for the variable tile size requires one \ac{pe} to send different data to its neighbors. This is visualized in \autoref{fig:grid_visualization}. This requires four distinct colors for sending to the different neighbors as well as four colors to receive. For each of the four directions, a pair of colors is used and arranged in a checkerboard pattern across the \ac{pe}-grid.
@@ -104,7 +104,7 @@ Where $f$ determines the color used to send data east and $1-f$ is used to recei
 \begin{figure}
     \centering
     \animategraphics[autoplay,loop,controls=false,width=\linewidth]{0.5}{stencil_frames/frame_0}{0}{8}
-    \caption{Visualization of the stencil computation for a radius-2, tiled stencil. (animation might not play in all pdf readers)}
+    \caption{Animation of the computational steps for one iteration of the tiled algorithm with radius $r=2$. Each frame highlights the rectangular region of the buffer being accessed and multiplied by a weight, with the result accumulated. The sequence demonstrates how the algorithm iterates through the halo regions as the values for the next iteration are computed. (Note: Animation may require a compatible PDF viewer).}
     \label{fig:stencil_algorithm_animation}
 \end{figure}
 

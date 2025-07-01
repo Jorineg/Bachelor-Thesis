@@ -104,7 +104,7 @@ However, the non-tiled algorithm is naturally limited to a radius of 1 and a gri
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.5\linewidth]{algo_comparison.png}
-    \caption{Comparison of non-tiled and tiled algorithm for radius 1}
+    \caption{Performance comparison of the specialized non-tiled and the r1-optimized tiled implementations for a radius-1 stencil. The specialized, non-tiled algorithm is significantly faster, achieving an 8x speedup on \ac{wse}-2 and a 7x speedup on \ac{wse}-3 due to its simpler communication and execution model.}
     \label{fig:algo_comparison}
 \end{figure}
 
@@ -139,7 +139,7 @@ As a second experiment, we compared our implementation for a grid size of the \a
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.5\linewidth]{cpu_gpu_cerebras_comparison.png}
-    \caption{Iterations per second for a grid size of $\num{10^3}\times\num{10^4}$ and radius 1-4 for \ac{cpu}, \ac{gpu} and Cerebras}
+    \caption{Performance comparison across architectures for a $10^3 \times 10^4$ grid. The Cerebras WSE-3 implementation significantly outperforms the \ac{gpu} (NVIDIA H100) and \ac{cpu} (AMD EPYC 9554) across all radii. While the \ac{gpu} performance is largely insensitive to the stencil radius, indicating a memory-bound workload, the \ac{cpu} and WSE-3 performance degrades as the computational cost increases.}
     \label{fig:cpu_gpu_cerebras_comparison}
 \end{figure}
 
