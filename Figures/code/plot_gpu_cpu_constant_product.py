@@ -52,6 +52,13 @@ Width,Height,Radius,Iterations (N),CPU Time (s),GPU Time (s)
 df_cpu_gpu = pd.read_csv(io.StringIO(data))
 df_cpu_gpu['Grid Size'] = df_cpu_gpu['Width'] * df_cpu_gpu['Height']
 
+# Compute throughput (iterations per second)
+df_cpu_gpu['CPU Iter/s'] = df_cpu_gpu['Iterations (N)'] / df_cpu_gpu['CPU Time (s)']
+df_cpu_gpu['GPU Iter/s'] = df_cpu_gpu['Iterations (N)'] / df_cpu_gpu['GPU Time (s)']
+# Also add time in ms for plotting
+df_cpu_gpu['CPU Time (ms)'] = df_cpu_gpu['CPU Time (s)'] * 1000
+df_cpu_gpu['GPU Time (ms)'] = df_cpu_gpu['GPU Time (s)'] * 1000
+
 # ---------------------------------
 # Cerebras WSE3 data (cycles/iteration)
 # ---------------------------------
@@ -67,6 +74,8 @@ TOTAL_WORK = 10 ** 10
 CLOCK_HZ = 1.1e9  # 1.1 GHz
 MAX_ON_CHIP_GRID = 762 * 1176  # 896 112
 
+USE_IPS = False
+
 # Helper to convert cycles → seconds for given grid size
 def cycles_to_time(cycles_per_iter: int, grid_size: float) -> float:
     iterations = TOTAL_WORK / grid_size
@@ -78,6 +87,7 @@ wse3_cycles = {
     1e8:  {1: 676,  2: 1698,  3: 2703,  4: 3216,  5: 4256,  6: 4732},
     1e7:  {1: 243,  2: 747,  3: 1168,  4: 1848,  5: 2635,  6: 3652},
     1e6:  {1: 162,  2: 339,  3: 526,  4: 808,  5: 1389, 6: 1879},
+    MAX_ON_CHIP_GRID:  {0: 23}, # r=1 overridden below
     1e5:  {1: 157,  2: 339,  3: 526,  4: 808,  5: 1389, 6: 1879},  # r=1 overridden below
     1e4:  {1: 157,  2: 339,  3: 526,  4: 808,  5: 1389, 6: 1879},  # r=1 overridden below
 }
@@ -86,9 +96,27 @@ wse3_cycles = {
 wse3_rows = []
 for grid_size, radius_dict in wse3_cycles.items():
     for radius, cycles in radius_dict.items():
-        eff_cycles = 23 if (radius == 1 and grid_size <= MAX_ON_CHIP_GRID) else cycles
-        time_s = cycles_to_time(eff_cycles, grid_size)
-        wse3_rows.append({'Grid Size': grid_size, 'Radius': radius, 'WSE3 Time (s)': time_s})
+        if radius <= 1:
+            # Add both tiled and non-tiled versions for radius 1
+            if grid_size <= MAX_ON_CHIP_GRID:
+                # Non-tiled version (23 cycles)
+                time_s = cycles_to_time(23, grid_size)
+                time_ms = time_s * 1000
+                iter_per_sec = 1.0 / (23 / CLOCK_HZ)
+                wse3_rows.append({'Grid Size': grid_size, 'Radius': 0, 'WSE3 Iter/s': iter_per_sec, 'WSE3 Time (s)': time_s, 'WSE3 Time (ms)': time_ms})
+            
+            if radius == 1:
+                # Tiled version (original cycles)
+                time_s = cycles_to_time(cycles, grid_size)
+                time_ms = time_s * 1000
+                iter_per_sec = 1.0 / (cycles / CLOCK_HZ)
+                wse3_rows.append({'Grid Size': grid_size, 'Radius': radius, 'WSE3 Iter/s': iter_per_sec, 'WSE3 Time (s)': time_s, 'WSE3 Time (ms)': time_ms})
+        else:
+            # Other radii (unchanged)
+            time_s = cycles_to_time(cycles, grid_size)
+            time_ms = time_s * 1000
+            iter_per_sec = 1.0 / (cycles / CLOCK_HZ)
+            wse3_rows.append({'Grid Size': grid_size, 'Radius': radius, 'WSE3 Iter/s': iter_per_sec, 'WSE3 Time (s)': time_s, 'WSE3 Time (ms)': time_ms})
 
 df_wse3 = pd.DataFrame(wse3_rows)
 
@@ -99,46 +127,59 @@ df_wse3 = pd.DataFrame(wse3_rows)
 plt.style.use('seaborn-v0_8-whitegrid')
 fig, ax = plt.subplots(figsize=(12, 8))
 
-radii_sorted = sorted(df_cpu_gpu['Radius'].unique())
-colors = plt.cm.viridis(np.linspace(0, 1, len(radii_sorted)))
+# Get all unique radii from both CPU/GPU and WSE3 data
+use_radii = [0, 1, 2, 4, 6]
 
-for i, radius in enumerate(radii_sorted):
-    # CPU / GPU lines
+cpu_gpu_radii = sorted(set(df_cpu_gpu['Radius'].unique()) & set(use_radii))
+wse3_radii = sorted(set(df_wse3['Radius'].unique()) & set(use_radii))
+all_radii = sorted(set(cpu_gpu_radii + wse3_radii))
+
+# Create color mapping
+colors = plt.cm.nipy_spectral(np.linspace(0.5, 0.1, len(all_radii)))
+color_map = {radius: colors[i] for i, radius in enumerate(all_radii)}
+
+metric = 'Iter/s' if USE_IPS else 'Time (ms)'
+
+# Plot CPU/GPU data
+for radius in cpu_gpu_radii:
     df_rad = df_cpu_gpu[df_cpu_gpu['Radius'] == radius].sort_values('Grid Size')
-    ax.plot(df_rad['Grid Size'], df_rad['CPU Time (s)'], linestyle='-',  color=colors[i])
-    ax.plot(df_rad['Grid Size'], df_rad['GPU Time (s)'], linestyle='--', color=colors[i])
+    ax.plot(df_rad['Grid Size'], df_rad['CPU ' + metric], linestyle='-',  color=color_map[radius], marker='o')
+    ax.plot(df_rad['Grid Size'], df_rad['GPU ' + metric], linestyle='--', color=color_map[radius], marker='o')
 
-    # WSE3 line (may have fewer points)
+# Plot WSE3 data
+for radius in wse3_radii:
     df_wse3_rad = df_wse3[df_wse3['Radius'] == radius].sort_values('Grid Size')
     if not df_wse3_rad.empty:
-        ax.plot(df_wse3_rad['Grid Size'], df_wse3_rad['WSE3 Time (s)'], linestyle='-.', color=colors[i])
+        ax.plot(df_wse3_rad['Grid Size'], df_wse3_rad['WSE3 ' + metric], linestyle='-.', color=color_map[radius], marker='o')
 
 # Set log scale for x and y-axis for better visualization
 ax.set_xscale('log')
 ax.set_yscale('log')
 
 # Adding titles and labels
-ax.set_title('CPU vs GPU Performance for Stencil Operations')
+ax.set_title('CPU vs GPU vs WSE-3 Performance for Star-Shaped Stencil')
 ax.set_xlabel('Grid Size (Width × Height)')
-ax.set_ylabel('Time (s)')
+ylabel = 'Iterations per second' if USE_IPS else 'Time (ms) for constant work (grid size × iterations = 1e10)'
+ax.set_ylabel(ylabel)
 
-# Create custom legends
-legend_elements_radius = [Line2D([0], [0], color=colors[i], lw=2, label=f'Radius {r}') for i, r in enumerate(radii_sorted)]
+# Move legends
+legend_elements_radius = []
+for radius in all_radii:
+    legend_elements_radius.append(Line2D([0], [0], color=color_map[radius], lw=2, label=f'Radius {radius if radius != 0 else "1 (non-tiled)"}'))
 
-# Draw the radius legend first so it stays when device legend is added later
-first_legend = plt.legend(handles=legend_elements_radius, loc='upper left', title='Radius')
+first_legend = plt.legend(handles=legend_elements_radius, loc='lower left', title='Radius')
 ax.add_artist(first_legend)
 
 legend_elements_device = [
-    Line2D([0], [0], color='black', lw=2, linestyle='-',  label='CPU'),
-    Line2D([0], [0], color='black', lw=2, linestyle='--', label='GPU'),
-    Line2D([0], [0], color='black', lw=2, linestyle='-.', label='WSE3')
+    Line2D([0], [0], color='black', lw=2, linestyle='-',  marker='o', label='CPU'),
+    Line2D([0], [0], color='black', lw=2, linestyle='--', marker='o', label='GPU'),
+    Line2D([0], [0], color='black', lw=2, linestyle='-.', marker='o', label='WSE-3')
 ]
-plt.legend(handles=legend_elements_device, loc='lower right', title='Device')
+plt.legend(handles=legend_elements_device, loc='lower center', title='Device')
 
 ax.grid(True, which="both", ls="--")
 
 # Save the plot
-plt.savefig('gpu_cpu_wse3_constant_product.png', dpi=300, bbox_inches='tight')
-
-print("Plot saved to gpu_cpu_wse3_constant_product.png")
+filename = 'gpu_cpu_wse3_constant_product_ips.png' if USE_IPS else 'gpu_cpu_wse3_constant_product.png'
+plt.savefig(filename, dpi=300, bbox_inches='tight')
+print(f"Plot saved to {filename}")
