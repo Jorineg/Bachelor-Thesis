@@ -109,11 +109,23 @@ However, the non-tiled algorithm is naturally limited to a radius of 1 and a gri
 \end{figure}
 
 \section{Comparison of Cerebras and traditional \ac{hpc}-Arcitectures}
-We conducted several experiments to compare the performance of the implemented stencils on the Cerebras \ac{wse} with highly optimized Devito implementations on \ac{cpu} and \ac{gpu}. The experiments were conducted in Vast.ai cloud.
-As a \ac{cpu} we used AMD EPYC 9554 64-Core Processor.
-As a \ac{gpu} we used NVIDIA H100 SXM 80GB.
+We conducted two more experiments to compare the performance of the implemented stencil on the Cerebras \ac{wse} with highly optimized Devito implementations for \ac{cpu} and \ac{gpu}. The experiments were conducted using the Vast.ai cloud.
+For the \ac{cpu} experiments we used a system with two AMD EPYC 9554 64-Core processors. The system has a total of \qty{128}{\mega\byte} of L2 cache and \qty{512}{\mega\byte} of L3 cache. It is equipped with \qty{1511}{\giga\byte} of DDR5 memory.
+The system is furthermore equipped with a NVIDIA H100 SXM 80GB, which was used for the \ac{gpu} experiments. The system had CUDA 12.8 installed and we used python 3.12.11, Devito 4.8.19, Cupy 13.4.1 and the nvc compiler in version 25.5.
 
-For the first experiment, we ran the optimized stencil code on \ac{cpu} and \ac{gpu} and kept the product of grid size and number of iterations constant. This results in a constant number of total flops. 
+For each benchmark we fixed the total work load, i.e., $width\times height\times N$, so that every configuration performs the same number of stencil updates while varying only the memory footprint. Steady-state performance was obtained by first running an untimed warm-up of $N$ iterations (triggering JIT compilation, allocations and data transfers) and then timing a second run of the same $N$ iterations with all data already resident on the \ac{cpu} or \ac{gpu}. This was done for grids with a total size of $10^x$ for $x \in \{4..9\}$ and radii in \numrange{1}{6}.
+The compute work, while in this experiment constant for different grid sizes, rises linearly with the radius, which on the other hand has no significant effect on memory footprint.
+Furthermore, we calculated the neccessary tile size to fit the same grid sizes on the \ac{wse}-3 and ran an experiment with this tile size for radii \numrange{1}{6} and a total grid size that results in \numproduct{5 x 5} active \acp{pe} in the simulator for four iterations and took the average cycle count of the last two iterations.
+Assuming perfect scaling accross the WSE as suggested by the results from \autoref{sec:pe_overhead}, we used this cycle count together with the \ac{wse}s clock frequency to calculate the total time for $10^{10-x}$ iterations.
+We also added the time, the non-tiled algorithm would take on the \ac{wse}-3 for the respective number of iterations where the \ac{wse}-3s hardware dimensions allow for the grid size.
+As the $width$ and $height$, we strictly used powers of 10, resulting in rectangular grids for odd $x$.
+
+To ensure the entire problem grid fits onto the available \acp{pe} of the \ac{wse}, the tile size ($t_w$, $t_h$) for a given grid of size ($G_w$, $G_h$) on a \ac{wse} with physical dimensions ($P_w$, $P_h$) is determined by:
+\begin{equation}
+    t_w = \left\lceil \frac{P_w}{G_w} \right\rceil, \quad t_h = \left\lceil \frac{P_h}{G_h} \right\rceil
+\end{equation}
+
+For example, to map the \numproduct{10^3 \times 10^4} grid onto the \ac{wse}-3 with its \numproduct{762 \times 1176} \acp{pe} array, we calculate the tile size. Mapping the grid's width to the \acp{pe} array's width results in a tile width of $\left\lceil \frac{1000}{762} \right\rceil = 2$ and a tile height of $\left\lceil \frac{10000}{1176} \right\rceil = 9$. However, mapping the grid's width to the \acp{pe} array's height is more efficient, yielding a tile width of $\left\lceil \frac{1000}{1176} \right\rceil = 1$ and a tile height of $\left\lceil \frac{10000}{762} \right\rceil = 14$. To minimize the total tile area and therefore the per-\ac{pe} workload, we chose the smaller configuration of $1 \times 14$. It is important to note that due to the radius constraint from \autoref{eq:radius_constraint}, the shorter dimension of the tile must be at least as large as the radius, so the effective tile size was adjusted accordingly if necessary.
 
 \begin{figure}[h]
     \centering
@@ -122,17 +134,25 @@ For the first experiment, we ran the optimized stencil code on \ac{cpu} and \ac{
     \label{fig:gpu_cpu_constant_product}
 \end{figure}
 
+The results, shown in \autoref{fig:gpu_cpu_constant_product}, show that the \ac{cpu} is very insensitive to the work allocation and differs only by a factor of \num{2.3} between its ideal grid size of \num{1e6} its least ideal grid size of \num{1e8} at a radius of 1. For the largest tested radius of \num{6} this effect is even smaller at a factor of \num{1.2} between fastest and slowest run.
+
+The \ac{cpu}s insensitivity to the work allocation suggests that it is compute limited.
+This gets confirmed by the fact that the \ac{cpu} runtime scales almost linearly with the radius. For the \ac{cpu} and its optimal grid size of $\num{1e6}$, it takes \num{6.2} times longer to calculate the \num{6} times as computationally expensive radius-\num{6} stencil compared to the radius-\num{1} stencil.
+
+Furthermore we observe that \ac{gpu} performance differs significantly depending work allocation with a minimal time of \qty{7.6e-2}{\second} for the optimal grid size of $\num{1e7}$ and a 128x slower time of \qty{9.7}{\second} for the slowest grid size of $\num{1e4}$. Interstingly a very large grid size of $\num{1e9}$ at a time of of \qty{7.4e-1}{\second} also results in a 9.7x slower time than the optimal grid size. While looking for a possible explanation for the pronounces optimum at a grid size of \num{1e7}, we find that the required memory of $\num{1e7}\times\qty{4}{\byte}=\qty{40}{\mega\byte}$ fits perfectly into \qty{50}{\mega\byte} L2 cache of the H100.
+Other than the \ac{cpu}, the \ac{gpu} is very insensitive to the radius. So much that all differences in the runtime for different radii are more likely attributed to measurement errors than to a real difference in the runtime.
+This strongly suggests that the \ac{gpu} is memory limited through all the different tested grid sizes.
+
 The results show that for most tested configurations, the \ac{gpu} outperforms the \ac{cpu}.
-However for very small tile sizes of 100x100 and large iteration counts of $\num{1e6}$, the \ac{cpu} is faster.
+However for very small tile sizes of \numproduct{100 x 100} and large iteration counts of $\num{1e6}$, the \ac{cpu} is faster.
 
-Furthermore we observe that \ac{gpu} performance differs significantly depending on the racio between grid size and iterations with an optimal performance at $\num{1e3}$ iterations and a grid size of $\num{1e7}$. At this grid size, the data ($\num{1e7}$ numbers $\times$ \qty{4}{\byte} per number $=$ \qty{40}{\mega\byte}) fits perfectly into \qty{50}{\mega\byte} L2 cache of the H100. 
+The \ac{wse}-3 is very sensitive to both the work allocation and the radius. The sensitivity to radius is significant accross all grid sizes with a factor of \num{12.0} between radius \num{1} and \num{6} for a grid of \num{1e4} and factor of \num{8.1} between radius \num{1} and \num{6} for a grid of \num{1e9}.
+The more than linear scaling for small grid sizes can be explained by the fact that these problems use a tile size of \numproduct{1 x 1} for radius \num{1} and \numproduct{6 x 6} for radius \num{6} which is $r^2(10r-1)$.
 
-Notably the \ac{gpu} perfors up to 100x worse for non-ideal grid sizes with $\num{1e4}$ elements compared to the ideal grid size with $\num{1e7}$ elements.
 
-For \ac{cpu}, the performance is not as sensitive to the ratio between grid size and iterations with just 2x worse performance for the least ideal grid size of $\num{1e8}$ elements compared to the ideal grid size of $\num{1e6}$ elements.
 
-Another notable observation is that the \ac{cpu} is a lot more sensitive to different radii (which do change the number of flops) than the \ac{gpu}. For the \ac{cpu} and its optimal grid size of $\num{1e6}$, it takes 3.8 times longer to calculate the 4 times as computationally expensive stencil with radius 4 compared to the stencil with radius 1. For the \ac{gpu} on the other hand, it takes only 1.1 times as long for its optimal grid size of $\num{1e7}$.
-This indicates that in their optimal configuration, the \ac{cpu} is compute limited while the \ac{gpu} is memory limited.
+
+
 
 As a second experiment, we compared our implementation for a grid size of the \ac{gpu}-optimal $\num{1e7}$ to the optimized \ac{gpu} and \ac{cpu} implementation. To fit a size of $\num{1e3}\times\num{1e4}$ on the \ac{wse}-2 with dimensions of $750\times994$, we need a tile size of at least $2x11$ and on \ac{wse}-3 with dimensions of $762\times1176$ a tile size of at least $14x1$. As shown in the earlier experiments, degrade larger tile sizes always the performance so we used these minimum tile sizes. Because of the radius constraint from \autoref{eq:radius_constraint}, we need to increase the shorter dimension of the tile to the respective radius.
 
