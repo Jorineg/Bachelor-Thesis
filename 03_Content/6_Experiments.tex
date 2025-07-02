@@ -134,12 +134,12 @@ For \ac{cpu}, the performance is not as sensitive to the ratio between grid size
 Another notable observation is that the \ac{cpu} is a lot more sensitive to different radii (which do change the number of flops) than the \ac{gpu}. For the \ac{cpu} and its optimal grid size of $\num{1e6}$, it takes 3.8 times longer to calculate the 4 times as computationally expensive stencil with radius 4 compared to the stencil with radius 1. For the \ac{gpu} on the other hand, it takes only 1.1 times as long for its optimal grid size of $\num{1e7}$.
 This indicates that in their optimal configuration, the \ac{cpu} is compute limited while the \ac{gpu} is memory limited.
 
-As a second experiment, we compared our implementation for a grid size of the \ac{gpu}-optimal $\num{1e7}$ to the optimized \ac{gpu} and \ac{cpu} implementation. To fit a size of $\num{1e3}\times\num{1e4}$ on the \ac{wse}-2 with dimensions of $750\times994$, we need a tile size of at least $2x11$ and on \ac{wse}-3 with dimensions of $750\times1200$ a tile size of at least $14x1$. As shown in the earlier experiments, degrade larger tile sizes always the performance so we used these minimum tile sizes. Because of the radius constraint from \autoref{eq:radius_constraint}, we need to increase the shorter dimension of the tile to the respective radius.
+As a second experiment, we compared our implementation for a grid size of the \ac{gpu}-optimal $\num{1e7}$ to the optimized \ac{gpu} and \ac{cpu} implementation. To fit a size of $\num{1e3}\times\num{1e4}$ on the \ac{wse}-2 with dimensions of $750\times994$, we need a tile size of at least $2x11$ and on \ac{wse}-3 with dimensions of $762\times1176$ a tile size of at least $14x1$. As shown in the earlier experiments, degrade larger tile sizes always the performance so we used these minimum tile sizes. Because of the radius constraint from \autoref{eq:radius_constraint}, we need to increase the shorter dimension of the tile to the respective radius.
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.5\linewidth]{cpu_gpu_cerebras_comparison.png}
-    \caption{Performance comparison across architectures for a $10^3 \times 10^4$ grid. The Cerebras WSE-3 implementation significantly outperforms the \ac{gpu} (NVIDIA H100) and \ac{cpu} (AMD EPYC 9554) across all radii. While the \ac{gpu} performance is largely insensitive to the stencil radius, indicating a memory-bound workload, the \ac{cpu} and WSE-3 performance degrades as the computational cost increases.}
+    \caption{Performance comparison across architectures for a $10^3 \times 10^4$ grid. The Cerebras \ac{wse}-3 implementation significantly outperforms the \ac{gpu} (NVIDIA H100) and \ac{cpu} (AMD EPYC 9554) across all radii. While the \ac{gpu} performance is largely insensitive to the stencil radius, indicating a memory-bound workload, the \ac{cpu} and \ac{wse}-3 performance degrades as the computational cost increases.}
     \label{fig:cpu_gpu_cerebras_comparison}
 \end{figure}
 
@@ -149,7 +149,7 @@ The speedup for radius 1 from \ac{cpu} to \ac{gpu} is about 40x. From \ac{gpu} t
 
 To evaluate the performance advantage of the specialized non-tiled algorithm, we compare it directly with highly optimized implementations on traditional \ac{hpc} architectures using grid sizes that match the \ac{wse} dimensions. This comparison uses the actual \ac{wse} grid dimensions as the problem size, which represents the maximum grid size achievable with the non-tiled algorithm.
 
-For \ac{wse}-2 with dimensions $750 \times 994$ and \ac{wse}-3 with dimensions $750 \times 1200$, we measured the performance of the same radius-1 stencil on all three architectures.
+For \ac{wse}-2 with dimensions $750 \times 994$ and \ac{wse}-3 with dimensions $762 \times 1176$, we measured the performance of the same radius-1 stencil on all three architectures.
 
 \begin{figure}[h]
     \centering
@@ -159,7 +159,7 @@ For \ac{wse}-2 with dimensions $750 \times 994$ and \ac{wse}-3 with dimensions $
 \end{figure}
 
 The results demonstrate the exceptional performance of the non-tiled algorithm. For the \ac{wse}-2 grid size ($750 \times 994$), the Cerebras implementation achieves \num{68750000} iterations per second, compared to \num{65707} for the \ac{gpu}. This represents a speedup of 1046x.
-For the \ac{wse}-3 grid size ($750 \times 1200$), the Cerebras implementation achieves \num{47826087} iterations per second, compared to \num{62743} for the \ac{gpu} with a speedup of 762x.
+For the \ac{wse}-3 grid size ($762 \times 1176$), the Cerebras implementation achieves \num{47826087} iterations per second, compared to \num{62743} for the \ac{gpu} with a speedup of 762x.
 
 The performance advantage stems from the direct mapping of grid elements to \acp{pe}, enabling defacto in-memory computation with a memory that is significantly faster than the \ac{gpu} memory. While this approach is limited to grid sizes not exceeding the \ac{wse} dimensions, it provides unparalleled performance for problems that fit within these constraints.
 

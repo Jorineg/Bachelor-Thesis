@@ -442,7 +442,7 @@ For CPU, the performance is not as sensitive to the ratio between grid size and 
 Another notable observation is that the cpu is a lot more sensitive to different radii (which do change the number of flops) than the gpu. For the cpu and its optimal grid size of $10^6$, it takes 3.8 times longer to calculate the 4 times as computationally expensive stencil with radius 4 compared to the stencil with radius 1. For the GPU on the other hand, it takes only 1.1 times as long for its optimal grid size of $10^7$.
 This indicates that in their optimal configuration, the cpu is compute limited while the gpu is memory limited.
 
-As a second experiment, we compared our implementation for a grid size of $10^7$ to the optimized gpu and cpu implementation. To fit a size of $10^3\times10^4$ on the WSE-2 with dimensions of $750\times994$, we need a tile size of at least $2x11$ and on WSE-3 with dimensions of $750\times1200$ a tile size of at least $14x1$. As shown in the earlier experiments, degrade larger tile sizes always the performance so we used these minimum tile sizes.
+As a second experiment, we compared our implementation for a grid size of $10^7$ to the optimized gpu and cpu implementation. To fit a size of $10^3\times10^4$ on the WSE-2 with dimensions of $750\times994$, we need a tile size of at least $2x11$ and on WSE-3 with dimensions of $762\times1176$ a tile size of at least $14x1$. As shown in the earlier experiments, degrade larger tile sizes always the performance so we used these minimum tile sizes.
 
 
 
