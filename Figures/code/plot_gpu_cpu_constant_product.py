@@ -121,7 +121,7 @@ CLOCK_HZ = 1.1e9  # 1.1 GHz
 MAX_ON_CHIP_GRID = 762 * 1176  # 896 112
 WSE3_NON_TILED_CYCLES_PER_ITERATION = 23
 
-USE_IPS = False
+USE_IPS = True
 
 # Helper to convert cycles → seconds for given grid size
 def cycles_to_time(cycles_per_iter: int, grid_size: float) -> float:
