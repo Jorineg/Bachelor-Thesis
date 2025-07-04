@@ -1,0 +1,24 @@
+graph TD
+    A[Implementations]
+
+    A1["<b>Single Cell</b><br/>Radius=1<br/>Asymmetric ✗<br/>Varying coefficients: (✓)"]
+    A2["<b>Tiled</b>"]
+    A21["<b>r1-Optimized</b><br/>Radius=1<br/>Asymmetric ✗<br/>Varying coefficients: ✓"]
+    A22["<b>General</b><br/>Radius >1<br/>Asymmetric (✓)<br/>Varying coefficients: ✓"]
+
+    A --> A1
+    A --> A2
+    A2 --> A21
+    A2 --> A22
+
+    %% Legend subgraph
+    subgraph Legend
+        direction LR %% Arrange legend items left-to-right
+        L1["✓= Supported"]
+        L2["(✓)= Supported with minimal changes"]
+        L3["✗= Not supported"]
+    end
+
+    %% Style the legend to be minimal
+    classDef legendStyle fill:none,stroke:none,color:#666
+    class L1,L2,L3 legendStyle

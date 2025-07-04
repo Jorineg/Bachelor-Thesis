@@ -1,4 +1,5 @@
 \chapter{Implementation}
+\label{sec:implementation}
 Since communication on Cerebras hardware is limited to the four direct neighbor elements, stencil algorithms that for a single iteration require data from \acp{pe} that are not direct neighbors are far more complex to implement and come with significant communication overhead. For that reason, we limit the scope of this work to update functions that require only communication with the direct neighboring \acp{pe}. This means that the radius of the stencil must be small or equal to the tile size, specifically
 \begin{equation}    
 \label{eq:radius_constraint}
@@ -7,13 +8,29 @@ r \leq \min(t_w, t_h)
 
 For the simple case where $t_w=t_h=1$, this results in a radius of 1.
 
-Two approaches were implemented:
+Two main approaches were implemented:
 \begin{itemize}
-    \item In specialized version, that restricts the radius to one represents each element of the grid with one \ac{pe} of the \ac{wse}. This specialization allows a heavily optimized implementation, but restricts the maximum problem size to the \ac{wse} hardware dimensions.
-    \item A general implementation maps multiple elements of the underlying grid, i.e., a tile size of $t_w, t_h$, to a single \ac{pe} and therefore allows for grid sizes that significantly exceed the \ac{wse} hardware dimensions and a radius greater than one as long as \autoref{eq:radius_constraint} is satisfied. 
+    \item A specialized, single cell implementation, that represents each element of the grid with one \ac{pe} and restricts the radius to one
+    \item A general, tiled implementation maps multiple elements of the underlying grid, i.e., a tile size of $t_w, t_h$, to a single \ac{pe}, allows for grid sizes that significantly exceed the \ac{wse} hardware dimensions and a radius greater than one as long as \autoref{eq:radius_constraint} is satisfied 
 \end{itemize}
 
-\section{radius-1, non-tiled}
+Within the tiled implementation, the special case of radius one has been further optimized to reduce overhead. We refer to this as the r1-optimized version of the tiled implementation. 
+
+Although the experiments throughout this thesis utilize symmetric, constant coefficients, the presented implementations offer different degrees of flexibility for more general stencil forms.
+
+The single cell implementation, as well as the r1-optimized tiled version, leverage optimizations that rely on symmetric coefficients. This restriction enables significant performance gains for this specific use case. In contrast, the general tiled implementation could handle asymmetric coefficients with minimal modifications without increasing the number of computational cycles.
+
+Regarding spatially varying coefficients, all implementations could be adapted to handle them without performance degradation. The tiled implementations are already designed for each PE to receive its own set of coefficients from the host, meaning a shift to variable coefficients would require no changes to the CSL kernel. The non-tiled implementation currently uses fixed weights but could support variable coefficients with a minor modification which would also incur no runtime overhead.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\linewidth]{implementations.png}
+    \caption{Visualization of the implementations.}
+    \label{fig:implementations}
+\end{figure}
+
+\section{single cell implementation}
+This specialization allows a heavily optimized implementation, but restricts the maximum problem size to the \ac{wse} hardware dimensions.
 The computation for each element can be described as follows:
 \begin{equation}
     \label{eq:stencil_computation}
@@ -135,7 +152,7 @@ If only \texttt{@fmacs} instructions were used, the accumulator would have to be
     \caption{Tiled algorithm code}\label{alg:tiled_algorithm}
 \end{algorithm}
 
-The dicrilet border is implemented by using a ring of \acp{pe} that only send and receive data from their neighbors and do not participate in the computation. If $r<t_w$ or $r<t_h$ the border \acp{pe} values are padded with zeros to fill their buffer. Re refer to the \acp{pe} that only send and receive data from their neighbors as border \acp{pe}, the ones that participate in the computation as inner \acp{pe} and the set of both of these as active \acp{pe}.
+The Dirichlet border is implemented by using a ring of \acp{pe} that only send and receive data from their neighbors and do not participate in the computation. If $r<t_w$ or $r<t_h$ the border \acp{pe} values are padded with zeros to fill their buffer. Re refer to the \acp{pe} that only send and receive data from their neighbors as border \acp{pe}, the ones that participate in the computation as inner \acp{pe} and the set of both of these as active \acp{pe}.
 
 \begin{table}[h]
     \centering
@@ -153,12 +170,13 @@ The dicrilet border is implemented by using a ring of \acp{pe} that only send an
     \end{tabular}
 \end{table}
 
-As a special case of the tiled algorithm, the radius-1 problem was further optimized by using \texttt{mem1d\_dsd}s instead of \texttt{mem4d\_dsd}s for the halo regions where the neighbors data is received as well as the data to send. Furthermore the shifted \acp{dsd} are precomputed and all \acp{dsd} are explicitly assigned to distinct \acp{dsr}. There are enough \acp{dsr} available so that each \ac{dsr} is used for at most one \ac{dsd}. This allows for a significant reduction in the number of cycles per iteration, since loading the \acp{dsd} into \acp{dsr} only needs to be done once, independent of the number of iterations. We still find that the \acp{dsd} used for reading the parts of the buffer that are send to the neighbors and the ones describing the halo regions for receiving need to be reloaded to the \acp{dsr} for each iteration. The load to \ac{dsr} for these \acp{dsd} acts as a kind of reset and if not done, it leads to buffer overflows. The documentation doesn't specify this requirement and interestingly, it is not necessary for all \acp{dsd}. 
-As another optimization, \texttt{@fadds} are used instead of \texttt{@fmacs} and the multiplication is handled separately. This reduces the flop number from $9$ to $6$ per element and results in a performance improvement because the simd width for \texttt{@fadds} is 2/4 on wse-2/3 while it is only 1 for \texttt{@fmacs}. Note that the shifted \acp{dsd} $buffer\_center\_dsd_{DIR,i}$ in the general version need to be created for each iteration of the loop while pre-computed \acp{dsd} are used in this optimized version.
+\subsection{r1-optimized version}
 
-We refer to this as the r1 optimized version of the tiled algorithm.
-The tiled algorithm is implemented so that it automatically selects the r1 optimized version if the radius is 1.
-For all experiments in this work, the r1 optimized version is used whenever applicable, except when explicitly stated otherwise.
+As a special case of the tiled algorithm, the problem with radius one was further optimized by using \texttt{mem1d\_dsd}s instead of \texttt{mem4d\_dsd}s for the halo regions where the neighbors data is received as well as the data to send. Furthermore the shifted \acp{dsd} are precomputed and all \acp{dsd} are explicitly assigned to distinct \acp{dsr}. There are enough \acp{dsr} available so that each \ac{dsr} is used for at most one \ac{dsd}. This allows for a significant reduction in the number of cycles per iteration, since loading the \acp{dsd} into \acp{dsr} only needs to be done once, independent of the number of iterations. We still find that the \acp{dsd} used for reading the parts of the buffer that are send to the neighbors and the ones describing the halo regions for receiving need to be reloaded to the \acp{dsr} for each iteration. The load to \ac{dsr} for these \acp{dsd} acts as a kind of reset and if not done, it leads to buffer overflows. The documentation doesn't specify this requirement and interestingly, it is not necessary for all \acp{dsd}. 
+As another optimization, \texttt{@fadds} are used instead of \texttt{@fmacs} and the multiplication is handled separately. This reduces the flop number from $9$ to $6$ per element and results in a performance improvement because the simd width for \texttt{@fadds} is 2/4 on wse-2/3 while it is only 1 for \texttt{@fmacs}. Note that the shifted \acp{dsd} $buffer\_center\_dsd_{DIR,i}$ in the general version need to be created for each iteration of the loop while pre-computed \acp{dsd} are used in this optimized version.
+Furthermore we find that on \ac{wse}-3 for radius one and tile sizes greater than four, we can rely on explicitly set task priorities instead of counters to ensure the computation task only starts if all data is receive. This further reduces overhead. 
+
+For all experiments in this work, the r1-optimized version is used whenever applicable, except when explicitly stated otherwise.
 
 \begin{algorithm}[tbh]
     \SetAlgoLined
@@ -189,4 +207,3 @@ For all experiments in this work, the r1 optimized version is used whenever appl
     \end{tabular}
 \end{table}
 
-With a larger tile size, the explicit starting mechanism of the computation task can be skipped so that the computation task can be activated while the data is send and received. Explicitly specified task priorities lead to the computation task only being executed after all data is send and received. However, this only works for WSE-3. 

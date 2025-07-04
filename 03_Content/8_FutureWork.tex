@@ -1,6 +1,17 @@
 \chapter{Future Work}
 \begin{itemize}
-    \item More optimization: use border \acp{pe} in a smarter way, use explicit \ac{dsr} assignment,try to overlap communication and computation in the general algorithm, try achieving full simd width
+    \item 
+    \item More optimization: use border \acp{pe} in a smarter way, use explicit \ac{dsr} assignment,try to overlap communication and computation in the general algorithm
+    \item try achieving full simd width (lower precision data types??)
     \item JOR, Gauss-Seidel / Red-Black implentation and SOR method or multigrid methods
     \item automatic convergence detection
 \end{itemize} 
+
+
+variable coefficients accross the grid. while not implemented in this work, should be easy and without performance overhead.
+
+asymetric coefficients. Not that hard to extend to. should have no performance overhead for tiled implementation except r1 optimized implementation that uses pv1+pv2+pv3+pv4=p(v1+v2+v3+v4) as optimization strategy, which is not applicable for asymetric coefficients.
+
+non-linear stencils would invole more work to implement and potentially optimize.
+
+extend to box shaped stencils,

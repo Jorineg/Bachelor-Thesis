@@ -1,4 +1,5 @@
 \chapter{Experiments}
+\label{sec:experiments}
 We did several experiments to answer the following questions:
 \begin{enumerate}
     \item How stable is the cycle count per iteration?
@@ -92,7 +93,9 @@ We find that the maximum tiling size  is 64x64=4096 elements.
 A non-quadratical tile size, that results in 4096 elements, is likely also possible, but not tested.
 Tile size of 64x64 was tested up to radius 3. It is likely to decrease for larger radius.
 
-This results in a maximum grid size of 48000x51000 on wse-2 and 48000x76000 on wse-3. (calculate correct number here!!!)
+This results in a maximum grid size containing \num{3101280000} elements on wse-2 and \num{3670474752} elements on wse-3.
+Note that due to hardware limitations of the \ac{wse}, the maximum stride for \acp{dsd} is \num{127} which makes very uneven distributions between tile width and tile height not possible.
+
 
 \section{Comparison of non-tiled and tiled algorithm}
 
@@ -166,7 +169,7 @@ However for very small tile sizes of \numproduct{100 x 100} and large iteration 
 The \ac{wse}-3 is very sensitive to both the work allocation and the radius. The sensitivity to radius is significant accross all grid sizes with a factor of \num{12.0} between radius \num{1} and \num{6} for a grid of \num{1e4} and factor of \num{8.1} between radius \num{1} and \num{6} for a grid of \num{1e9}.
 The more than linear scaling for small grid sizes can be explained by the fact that these problems use a tile size of \numproduct{1 x 1} for radius \num{1} and \numproduct{6 x 6} for radius \num{6} which results in $r^2(10r-1)$ flops per \ac{pe}. This number rises with the cube of $r$. The 12x now appears relatively low and is caused by communication also playing a major role in the overall time for these small grid sizes. For a grid size of \num{1e9} on the other hand, the tile size is constant for all radii and the scaling is closer to linear with an outlier for radius \num{1}, because this uses the $r1$ optimized tiled algorithm. The factor between radius \num{2} and \num{6} is \num{2.6}.
 
-Analyzing the \ac{wse}-3s performance, we find that the iterations per second (not shown in the plot!) is constant for grids of size \numrange{1e4}{1e6}. Together with the decreased number of iterations for larger grid sizes, this leads to faster runtimes for larger grid sizes. This is because grid sizes smaller than \num{1e6} do not use the whole \ac{wse} dimensions and the scaling to more \acp{pe} comes without performance degradation. Grid sizes from \num{1e6} to \num{1e8} use the whole \ac{wse} and show slower iteration times as the grid size increases, but sublinear. For radius \num{1} the slowdown of time per iteration between grid sizes of \num{1e6} and \num{1e7} is only \num{1.5} and from \num{1e7} to \num{1e8} only \num{2.8}. However starting from \num{1e8} the slowdown is more than linear with a factor of \num{7.8} between \num{1e8} and \num{1e9} for radius \num{1} and \num{9.8} for radius \num{2}. We assume this is because constant overheads are getting less significant relative to the computation at these grid sizes.
+Analyzing the \ac{wse}-3s performance, we find that the iterations per second (not shown in the plot!) is constant for grids of size \numrange{1e4}{1e6}. Together with the decreased number of iterations for larger grid sizes, this leads to faster runtimes for larger grid sizes. This is because grid sizes smaller than \num{1e6} do not use the whole \ac{wse} dimensions and the scaling to more \acp{pe} comes without performance degradation. Grid sizes from \num{1e6} to \num{1e8} use the whole \ac{wse} and show slower iteration times as the grid size increases, but sublinear. For radius \num{1} the slowdown of time per iteration between grid sizes of \num{1e6} and \num{1e7} is only \num{1.5} and from \num{1e7} to \num{1e8} only \num{2.8}. However starting from \num{1e8} the slowdown is almost linear with a factor of \num{7.8} between \num{1e8} and \num{1e9} for radius \num{1} and \num{9.8} for radius \num{2}. We assume this is because constant overheads are getting less significant relative to the computation at these grid sizes.
 
 The \ac{wse}-3 implementation outperforms the \ac{cpu} and \ac{gpu} for all tested grid sizes and radii with the most significant speedup for the largest grid size of \num{1e9} and radius \num{1} with a speedup of \num{1.5e4} compared to the \ac{gpu} and \num{6.1e4} compared to the \ac{cpu}. Because the runtime for the stencil is independent from the radius on the \ac{gpu}, but not on the \ac{wse}-3, the speedup from \ac{wse}-3 to \ac{gpu} for the same grid size of \num{1e9} and radius \num{6} is significantly smaller at \num{2.0e3}.
 

@@ -1,4 +1,9 @@
 \chapter{Introduction}
+
+linear 2d star-shaped stencils. 
+
+Stencil computations form the computational heart of scientific simulations across disciplines, from modeling heat dissipation in semiconductor chips to simulating complex seismic waves.
+
 - motivation: why are stencil coputations important 
 - problem: why is efficient implementation on cerebres difficult, what are the chances?
 
@@ -19,14 +24,13 @@ We identify following research questions:
     \item How does the performance of the Cerepbras-Implentation position itself compared to highly optimized implementations on traditional \ac{hpc}-Arcitectures (\ac{cpu}, \ac{gpu})? 
 \end{itemize}
 
-The main contributions of this thesis are::
+Der job der Einleitung: die contributions verstehen.
+(mehrere stencil paper introductions lesen)
+muss nicht mehr als 2 oder 3 seiten sein.
+
+The main contributions of this thesis are:
 \begin{itemize}
-    \item The design, implementation, and analysis of two distinct implementations for 2D star-shaped stencils on the Cerebras \ac{wse}:
-    \begin{itemize}
-        \item A latency-optimized, directly-mapped implementation for radius-1 stencils.
-        \item A flexible, tiled implementation for varibale-radius stencils.
-    \end{itemize}
-    \item A detailed performance analysis comparing the two implementations and investigating the tiled algorithms parameter space. 
-    \item A performance comparison of the \ac{wse}-implementations with highly optimized, devito generated code for modern multi core \acp{cpu} and high-end \acp{gpu}.
-    \item A simplified performance model for the implemented stencil operators on the \ac{wse}, which accounts for key architectural features.
-\end{itemize} 
+    \item Two different implementations for two-dimensional star-shaped stencil on the Cerebras WSE, a single cell implementation optimized for latency, and a tiled implementation optimized for throughput and larger grid sizes (Chapter~\autoref{sec:implementation})
+    \item A simplified performance model for the implemented stencil operators on the \ac{wse}, accounting for key architectural features (Chapter~\autoref{sec:theory_performance})
+    \item A performance evaluation investigating the effects of different tile sizes and radii for the cerebras wse2 and wse3 architectures, and a comparison to optimized code generated from the high-level stencil DSL Devito targeting AMD Epyc cpu and nvidia h100 gpu (Chapter~\autoref{sec:experiments})
+\end{itemize}
