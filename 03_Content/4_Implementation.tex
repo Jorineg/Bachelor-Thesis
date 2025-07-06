@@ -36,7 +36,7 @@ The computation for each element can be described as follows:
     \label{eq:stencil_computation}
     v^{'} = w_0 \cdot v + w_1 \cdot (v_{north} + v_{east} + v_{south} + v_{west})
 \end{equation}
-Where $v$ is the old value of the element, $v_{north}, v_{east}, v_{south}, v_{west}$ are the values of the four neighbors, $w_0, w_1$ are the stencil coefficients and $v^'$ is the new value of the element.
+Where $v$ is the old value of the element, $v_{north}, v_{east}, v_{south}, v_{west}$ are the values of the four neighbors, $w_0, w_1$ are the stencil coefficients and $v^{'}$ is the new value of the element.
 
 \subsection{Routing configuration}
 Each \ac{pe} must be able to send its data to, and receive data from its four direct neighboring \acp{pe}. Notably it sends the same data to the four neighbors. This allows for increasing communication speed by sending the data only once and forwarding it in the router to all neighbors. We used a pattern containing six distinct colors to map the grid.

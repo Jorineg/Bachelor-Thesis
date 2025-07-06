@@ -29,7 +29,7 @@ For communication each \ac{pe} also contains a fabric router additional to the \
 The data flow between \acp{pe} can be defined through 24 static routes called colors.
 Due to not perfect yiel, some \acp{pe} are non functional.
 Cerebras solves this problem by routing around these \acp{pe}. 
-To make this work, about \num{100k} \acp{pe} are spare \acp{pe} so that the logical number of usable \acp{pe} is a lot lower.
+To make this work, about \num{100000} \acp{pe} are spare \acp{pe} so that the logical number of usable \acp{pe} is a lot lower.
 As suggested by the documentation \cite{cerebras_gemv_tutorial}, usable fabric dimensions might slightly change from system to system. Tramm et al. \cite{tramm2024efficient} find the user programmable number of \acp{pe} for \ac{wse}-2 to be \numproduct{750 x 994}, so we use this number throughout our work. For \ac{wse}-3 the official documentation states the fabric dimensions to be \numproduct{762 x 1176} and while this does not include the spare cores, it is not clear what the exact user programmable number is. In lack of official numbers, we use these throughout our work. Both systems operate at a clock speed of \qty{1.1}{\giga\hertz}.
 
 \begin{figure}[h]

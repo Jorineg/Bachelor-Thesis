@@ -122,14 +122,14 @@ Furthermore, we calculated the neccessary tile size to fit the same grid sizes o
 Assuming perfect scaling accross the WSE as suggested by the results from \autoref{sec:pe_overhead}, we used this cycle count together with the \ac{wse}s clock frequency to calculate the total time for $10^{10-x}$ iterations.
 We also added the time, the non-tiled algorithm would take on the \ac{wse}-3 for the respective number of iterations where the \ac{wse}-3s hardware dimensions allow for the grid size.
 As the $width$ and $height$, we strictly used powers of 10, resulting in rectangular grids for odd $x$.
-To have all experiments use \numproduct{5 x 5} active \acp{pe} in the simulator, we used a grid size of \roundbrack{3\times t_w + 2r, 3\times t_h + 2r}.
+To have all experiments use \numproduct{5 x 5} active \acp{pe} in the simulator, we used a grid size of $\roundbrack{3\times t_w + 2r, 3\times t_h + 2r}$.
 
 To ensure the entire problem grid fits onto the available \acp{pe} of the \ac{wse}, the tile size ($t_w$, $t_h$) for a given grid of size ($G_w$, $G_h$) on a \ac{wse} with physical dimensions ($P_w$, $P_h$) is determined by:
 \begin{equation}
     t_w = \left\lceil \frac{P_w}{G_w} \right\rceil, \quad t_h = \left\lceil \frac{P_h}{G_h} \right\rceil
 \end{equation}
 
-For example, to map the \numproduct{10^3 \times 10^4} grid onto the \ac{wse}-3 with its \numproduct{762 \times 1176} \acp{pe} array, we calculate the tile size. Mapping the grid's width to the \acp{pe} array's width results in a tile width of $\left\lceil \frac{1000}{762} \right\rceil = 2$ and a tile height of $\left\lceil \frac{10000}{1176} \right\rceil = 9$. However, mapping the grid's width to the \acp{pe} array's height is more efficient, yielding a tile width of $\left\lceil \frac{1000}{1176} \right\rceil = 1$ and a tile height of $\left\lceil \frac{10000}{762} \right\rceil = 14$. To minimize the total tile area and therefore the per-\ac{pe} workload, we chose the smaller configuration of $1 \times 14$. It is important to note that due to the radius constraint from \autoref{eq:radius_constraint}, the shorter dimension of the tile must be at least as large as the radius, so the effective tile size was adjusted accordingly if necessary.
+For example, to map the \numproduct{10^3 x 10^4} grid onto the \ac{wse}-3 with its \numproduct{762 x 1176} \acp{pe} array, we calculate the tile size. Mapping the grid's width to the \acp{pe} array's width results in a tile width of $\left\lceil \frac{1000}{762} \right\rceil = 2$ and a tile height of $\left\lceil \frac{10000}{1176} \right\rceil = 9$. However, mapping the grid's width to the \acp{pe} array's height is more efficient, yielding a tile width of $\left\lceil \frac{1000}{1176} \right\rceil = 1$ and a tile height of $\left\lceil \frac{10000}{762} \right\rceil = 14$. To minimize the total tile area and therefore the per-\ac{pe} workload, we chose the smaller configuration of $1 \times 14$. It is important to note that due to the radius constraint from \autoref{eq:radius_constraint}, the shorter dimension of the tile must be at least as large as the radius, so the effective tile size was adjusted accordingly if necessary.
 
 \begin{table}[h]
     \centering
@@ -190,7 +190,7 @@ The \ac{wse}-3 implementation outperforms the \ac{cpu} and \ac{gpu} for all test
 
 To evaluate the performance advantage of the specialized non-tiled algorithm, we compare it directly with highly optimized implementations on traditional \ac{hpc} architectures using grid sizes that match the \ac{wse} dimensions. This comparison uses the actual \ac{wse} grid dimensions as the problem size, which represents the maximum grid size achievable with the non-tiled algorithm.
 
-For \ac{wse}-2 with dimensions $750 \times 994$ and \ac{wse}-3 with dimensions $762 \times 1176$, we measured the performance of the same radius-1 stencil on all three architectures.
+For \ac{wse}-2 with dimensions \numproduct{750 x 994} and \ac{wse}-3 with dimensions \numproduct{762 x 1176}, we measured the performance of the same radius-1 stencil on all three architectures.
 
 \begin{figure}[h]
     \centering
@@ -199,8 +199,8 @@ For \ac{wse}-2 with dimensions $750 \times 994$ and \ac{wse}-3 with dimensions $
     \label{fig:cpu_gpu_cerebras_non_tiled_comparison}
 \end{figure}
 
-The results demonstrate the exceptional performance of the non-tiled algorithm. For the \ac{wse}-2 grid size ($750 \times 994$), the Cerebras implementation achieves \num{68750000} iterations per second, compared to \num{65707} for the \ac{gpu}. This represents a speedup of 1046x.
-For the \ac{wse}-3 grid size ($762 \times 1176$), the Cerebras implementation achieves \num{47826087} iterations per second, compared to \num{62743} for the \ac{gpu} with a speedup of 762x.
+The results demonstrate the exceptional performance of the non-tiled algorithm. For the \ac{wse}-2 grid size (\numproduct{750 x 994}), the Cerebras implementation achieves \num{68750000} iterations per second, compared to \num{65707} for the \ac{gpu}. This represents a speedup of 1046x.
+For the \ac{wse}-3 grid size (\numproduct{762 x 1176}), the Cerebras implementation achieves \num{47826087} iterations per second, compared to \num{62743} for the \ac{gpu} with a speedup of 762x.
 
 The performance advantage stems from the direct mapping of grid elements to \acp{pe}, enabling defacto in-memory computation with a memory that is significantly faster than the \ac{gpu} memory. While this approach is limited to grid sizes not exceeding the \ac{wse} dimensions, it provides unparalleled performance for problems that fit within these constraints.
 
