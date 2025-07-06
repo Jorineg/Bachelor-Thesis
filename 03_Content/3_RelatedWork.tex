@@ -1,10 +1,9 @@
 \chapter{Related Work}
 Optimizing stencil codes has been a long standing research topic.
 For traditional \ac{hpc} architectures, like \ac{cpu} and \ac{gpu}, where this problem is memory bound, most work focuses on cache optimization by using techniques like tiling, loop reordering or temporal blocking.
+Lange et al. \cite{lange2016devito} introduced Devito, a python based \ac{dsl} for finite difference stencil codes, that generates code for different \ac{hpc} architectures, incorporating these techniques.
 
-However, since the \ac{wse} doesn't have a cache hierarchy, these techniques are not applicable and instead the research focus is on the efficient mapping of the stencil grid to the \ac{wse} and data routing strategies.
-
-Lange et al. \cite{lange2016devito} introduced a python based \ac{dsl} for finite difference stencil codes, that generates optimized code for different \ac{hpc} architectures.
+However, new hardware accelerators like the \ac{wse} feature a vastly different programming model with \acp{pe} representing different hardware actors with a lacking synchronized control instance and a completly missing cache hierarchy. This makes most studied ideas not applicable and the \ac{wse} so far too difficult to target for general-purpose stencil \ac{dsl}s like Devito.
 
 Rocki et al. \cite{rocki2020fast} were the first to use the \ac{wse} architecture for stencil computations and layed the foundation for how the memory access in stencil patterns can be replaced by communication between \ac{pe}s holding parts of the grid.
 
@@ -12,4 +11,4 @@ Jacquelin et al. \cite{jacquelin2022massively} implement and analyze a 25-point 
 They do this by mapping the z-dimension of the grid to the \ac{pe}s memory while mapping the x and y dimensions to the \ac{wse}-2's \ac{pe}s, so that each \ac{pe} holds a 1D column of the grid.
 Noticably they show almost perfect weak scaling with the an increasing number of \ac{pe}s, meaning that when the number of \ac{pe}s is increased from \numproduct{200 x 200} to the full \ac{wse}-2's maximum dimension of \numproduct{755 x 994} while increasing the problem size by the same factor, the runtime is almost constant with only a 1.5\% increase.
 
-There have also been apporaches for combiling a higher level stencil language to \ac{wse} code as presented by Woo et al. \cite{woo2022disruptive} as well as Sai et al. \cite{sai2024automated} who use a \ac{dsl} to generate code for the \ac{wse}-2. However, these approaches mainly focus on 3D stencils and while they might be able to generate code for 2D stencils, they don't explore topics like tiling of the x and y dimensions. While this idea is probaply impractical for most 3D stencil applications, it is a topic that is a lot more interesting for 2D stencils and therefore the focus of our work.
+There have also been apporaches for compiling higher level stencil languages to code for the \ac{wse} as presented by Woo et al. \cite{woo2022disruptive} as well as Sai et al. \cite{sai2024automated}. However, these approaches mainly focus on 3D stencils and while they might be able to generate code for 2D stencils, they don't explore topics like tiling of the x and y dimensions. While this idea is probaply impractical for most 3D stencil applications, it is a lot more promising for 2D stencils and therefore the focus of our work.
