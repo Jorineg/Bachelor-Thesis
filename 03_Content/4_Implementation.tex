@@ -91,7 +91,7 @@ Unfortunately, this does not work on WSE-3, since it allows at most one fabric \
         total & & \num{6} & \num{6} \\
         \bottomrule
     \end{tabular}
-\end{table>
+\end{table}
 
 \section{tiled any radius star shaped 2d}
 For a radius greater than one, the computation can be expressed as follows:
@@ -133,32 +133,32 @@ Asynchronous \texttt{@fmovs} instructions are used for data exchange. Two counte
 The \ac{dsd} configuration for the tiled implementation is shown in \autoref{lst:dsd_config}.
 
 \begin{lstlisting}[language=CSL, caption={DSD Configuration for Tiled Implementation}, label={lst:dsd_config}]
-const all_buffer_dsd = @get_dsd(mem4d_dsd, .{ 
-    .tensor_access = |i, j|{tile_height + 2*radius, tile_width + 2*radius} 
-        -> buffer[i, j] 
-});
-const buffer_center_dsd = @get_dsd(mem4d_dsd, .{ 
-    .tensor_access = |i, j|{tile_height, tile_width} 
-        -> buffer[radius + i, radius + j] 
-});
+    const all_buffer_dsd = @get_dsd(mem4d_dsd, .{ 
+        .tensor_access = |i, j|{tile_height + 2*radius, tile_width + 2*radius} 
+            -> buffer[i, j] 
+    });
+    const buffer_center_dsd = @get_dsd(mem4d_dsd, .{ 
+        .tensor_access = |i, j|{tile_height, tile_width} 
+            -> buffer[radius + i, radius + j] 
+    });
 
-const buffer_send_west_dsd = @get_dsd(mem4d_dsd, .{ 
-    .tensor_access = |i, j|{tile_height, radius} 
-        -> buffer[i + radius, j + radius] 
-});
-const buffer_send_east_dsd = @get_dsd(mem4d_dsd, .{ 
-    .tensor_access = |i, j|{tile_height, radius} 
-        -> buffer[i + radius, tile_width + j] 
-});
+    const buffer_send_west_dsd = @get_dsd(mem4d_dsd, .{ 
+        .tensor_access = |i, j|{tile_height, radius} 
+            -> buffer[i + radius, j + radius] 
+    });
+    const buffer_send_east_dsd = @get_dsd(mem4d_dsd, .{ 
+        .tensor_access = |i, j|{tile_height, radius} 
+            -> buffer[i + radius, tile_width + j] 
+    });
 
-const buffer_recv_west_dsd = @get_dsd(mem4d_dsd, .{ 
-    .tensor_access = |i, j|{tile_height, radius} 
-        -> buffer[radius + i, j] 
-});
-const buffer_recv_east_dsd = @get_dsd(mem4d_dsd, .{ 
-    .tensor_access = |i, j|{tile_height, radius} 
-        -> buffer[radius + i, tile_width + radius + j] 
-});    
+    const buffer_recv_west_dsd = @get_dsd(mem4d_dsd, .{ 
+        .tensor_access = |i, j|{tile_height, radius} 
+            -> buffer[radius + i, j] 
+    });
+    const buffer_recv_east_dsd = @get_dsd(mem4d_dsd, .{ 
+        .tensor_access = |i, j|{tile_height, radius} 
+            -> buffer[radius + i, tile_width + radius + j] 
+    });    
 \end{lstlisting}
 
 
@@ -200,7 +200,7 @@ The Dirichlet border is implemented by using a ring of \acp{pe} that only send a
         total & & $5r$ & $10r-1$ \\
         \bottomrule
     \end{tabular}
-\end{table>
+\end{table}
 
 \subsection{r1-optimized version}
 
@@ -237,5 +237,5 @@ For all experiments in this work, the r1-optimized version is used whenever appl
         total & & \num{6} & \num{6} \\
         \bottomrule
     \end{tabular}
-\end{table>
+\end{table}
 
