@@ -12,7 +12,7 @@ We did several experiments to answer the following questions:
     \item What contributes to the cycle count?
 \end{enumerate}
 
-All experiments are performed on the cycle accurate simulator that is part of the Cerebras \ac{sdk}.
+All experiments are performed on the cycle accurate simulator that is part of the Cerebras \ac{sdk} of which we used the version 1.3.0.
 Using the simulator limits the number of \acp{pe} and number of iterations so that the data needs to be extrapolated to the whole grid.
 We examine to what extend extrapolation is possible in the first two experiments.
 
@@ -129,7 +129,7 @@ To ensure the entire problem grid fits onto the available \acp{pe} of the \ac{ws
     t_w = \left\lceil \frac{P_w}{G_w} \right\rceil, \quad t_h = \left\lceil \frac{P_h}{G_h} \right\rceil
 \end{equation}
 
-For example, to map the \numproduct{10^3 x 10^4} grid onto the \ac{wse}-3 with its \numproduct{762 x 1176} \acp{pe} array, we calculate the tile size. Mapping the grid's width to the \acp{pe} array's width results in a tile width of $\left\lceil \frac{1000}{762} \right\rceil = 2$ and a tile height of $\left\lceil \frac{10000}{1176} \right\rceil = 9$. However, mapping the grid's width to the \acp{pe} array's height is more efficient, yielding a tile width of $\left\lceil \frac{1000}{1176} \right\rceil = 1$ and a tile height of $\left\lceil \frac{10000}{762} \right\rceil = 14$. To minimize the total tile area and therefore the per-\ac{pe} workload, we chose the smaller configuration of $1 \times 14$. It is important to note that due to the radius constraint from \autoref{eq:radius_constraint}, the shorter dimension of the tile must be at least as large as the radius, so the effective tile size was adjusted accordingly if necessary.
+For example, to map the \numproduct{10e3 x 10e4} grid onto the \ac{wse}-3 with its \numproduct{762 x 1176} \acp{pe} array, we calculate the tile size. Mapping the grid's width to the \acp{pe} array's width results in a tile width of $\left\lceil \frac{1000}{762} \right\rceil = 2$ and a tile height of $\left\lceil \frac{10000}{1176} \right\rceil = 9$. However, mapping the grid's width to the \acp{pe} array's height is more efficient, yielding a tile width of $\left\lceil \frac{1000}{1176} \right\rceil = 1$ and a tile height of $\left\lceil \frac{10000}{762} \right\rceil = 14$. To minimize the total tile area and therefore the per-\ac{pe} workload, we chose the smaller configuration of $1 \times 14$. It is important to note that due to the radius constraint from \autoref{eq:radius_constraint}, the shorter dimension of the tile must be at least as large as the radius, so the effective tile size was adjusted accordingly if necessary.
 
 \begin{table}[h]
     \centering

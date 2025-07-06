@@ -25,9 +25,9 @@ Regarding spatially varying coefficients, all implementations could be adapted t
 \begin{figure}
     \centering
     \includegraphics[width=0.5\linewidth]{implementations.png}
-    \caption{Visualization of the implementations.}
+    \caption{Visualization of the implementations}
     \label{fig:implementations}
-\end{figure}
+\end{figure>
 
 \section{single cell implementation}
 This specialization allows a heavily optimized implementation, but restricts the maximum problem size to the \ac{wse} hardware dimensions.
@@ -79,7 +79,7 @@ Unfortunately, this does not work on WSE-3, since it allows at most one fabric \
 
 \begin{table}[h]
     \centering
-    \caption{Operations for one grid point and iteration in the radius-1, non-tiled implementation.}
+    \caption{Operations for one grid point and iteration in the radius-1, non-tiled implementation}
     \label{tab:r1_non_tiled_operations}
     \begin{tabular}{@{}cccc@{}}
         \toprule
@@ -91,7 +91,7 @@ Unfortunately, this does not work on WSE-3, since it allows at most one fabric \
         total & & \num{6} & \num{6} \\
         \bottomrule
     \end{tabular}
-\end{table}
+\end{table>
 
 \section{tiled any radius star shaped 2d}
 For a radius greater than one, the computation can be expressed as follows:
@@ -105,7 +105,7 @@ Where $v$ is the old value of the element, $v_{north,i}, v_{east,i}, v_{south,i}
 \begin{figure}
     \centering
     \includegraphics[width=0.5\linewidth]{grid_visualization.png}
-    \caption{Data layout within a single PE for a tiled stencil with tile size $t_w=5, t_h=3$ and radius $r=2$. The green area represents the PE's assigned grid tile. The surrounding yellow halo region stores data received from neighbors, while the orange and purple outlines show the data regions sent to the northern and western PEs, respectively.}
+    \caption{Data layout within two neighboring \acp{pe} for the tiled stencil with tile size $t_w=3, t_h=4$ and radius $r=2$. The light green area represents the \ac{pe}'s assigned grid tile. The surrounding light blue halo region stores data received from neighbors, while the green and blue thick borders show the data regions exchanged between neighboring \acp{pe}.}
     \label{fig:grid_visualization}
 \end{figure}
 The communication for the variable tile size requires one \ac{pe} to send different data to its neighbors. This is visualized in \autoref{fig:grid_visualization}. This requires four distinct colors for sending to the different neighbors as well as four colors to receive. For each of the four directions, a pair of colors is used and arranged in a checkerboard pattern across the \ac{pe}-grid.
@@ -129,6 +129,38 @@ The tile of the grid, held by single \ac{pe} is stored in the center region of a
 
 Two \texttt{mem4d\_dsd}s per direction are used for communication. One that specifies the location within the buffer of the data to send and one that specifies the location of the data to receive.
 Asynchronous \texttt{@fmovs} instructions are used for data exchange. Two counters track the completion of asynchronous send and receive operations. Once all four neighbor data blocks have been sent and all four have been received, the main computation task is triggered. This ensures that the computation only starts once all necessary data is available in the halo regions.
+
+The \ac{dsd} configuration for the tiled implementation is shown in \autoref{lst:dsd_config}.
+
+\begin{lstlisting}[language=CSL, caption={DSD Configuration for Tiled Implementation}, label={lst:dsd_config}]
+const all_buffer_dsd = @get_dsd(mem4d_dsd, .{ 
+    .tensor_access = |i, j|{tile_height + 2*radius, tile_width + 2*radius} 
+        -> buffer[i, j] 
+});
+const buffer_center_dsd = @get_dsd(mem4d_dsd, .{ 
+    .tensor_access = |i, j|{tile_height, tile_width} 
+        -> buffer[radius + i, radius + j] 
+});
+
+const buffer_send_west_dsd = @get_dsd(mem4d_dsd, .{ 
+    .tensor_access = |i, j|{tile_height, radius} 
+        -> buffer[i + radius, j + radius] 
+});
+const buffer_send_east_dsd = @get_dsd(mem4d_dsd, .{ 
+    .tensor_access = |i, j|{tile_height, radius} 
+        -> buffer[i + radius, tile_width + j] 
+});
+
+const buffer_recv_west_dsd = @get_dsd(mem4d_dsd, .{ 
+    .tensor_access = |i, j|{tile_height, radius} 
+        -> buffer[radius + i, j] 
+});
+const buffer_recv_east_dsd = @get_dsd(mem4d_dsd, .{ 
+    .tensor_access = |i, j|{tile_height, radius} 
+        -> buffer[radius + i, tile_width + radius + j] 
+});    
+\end{lstlisting}
+
 
 A \ac{dsd} is used to select the center region of the buffer. This \ac{dsd} is subsequently shifted to represent a rectangular area of the buffer that is shifted up, down, left or right by a number of elements up to the radius from the center. \texttt{@fmacs} instructions are used to multiply these values with the respective weight and add the results to the accumulator. The accumulator is then multiplied with the weight $w_0$ and added to the center region of the buffer to complete the iteration. This process is visualized in \autoref{fig:stencil_algorithm_animation}.
 
@@ -156,7 +188,7 @@ The Dirichlet border is implemented by using a ring of \acp{pe} that only send a
 
 \begin{table}[h]
     \centering
-    \caption{Operations for one grid point and iteration, tiled implementation with radius $r$.}
+    \caption{Operations for one grid point and iteration, tiled implementation with radius $r$}
     \label{tab:tiled_operations}
     \begin{tabular}{@{}cccc@{}}
         \toprule
@@ -168,7 +200,7 @@ The Dirichlet border is implemented by using a ring of \acp{pe} that only send a
         total & & $5r$ & $10r-1$ \\
         \bottomrule
     \end{tabular}
-\end{table}
+\end{table>
 
 \subsection{r1-optimized version}
 
@@ -193,7 +225,7 @@ For all experiments in this work, the r1-optimized version is used whenever appl
 
 \begin{table}[h]
     \centering
-    \caption{Operations for one grid point and iteration, r1 optimized tiled implementation.}
+    \caption{Operations for one grid point and iteration, r1 optimized tiled implementation}
     \label{tab:tiled_operations_r1_optimized}
     \begin{tabular}{@{}cccc@{}}
         \toprule
@@ -205,5 +237,5 @@ For all experiments in this work, the r1-optimized version is used whenever appl
         total & & \num{6} & \num{6} \\
         \bottomrule
     \end{tabular}
-\end{table}
+\end{table>
 

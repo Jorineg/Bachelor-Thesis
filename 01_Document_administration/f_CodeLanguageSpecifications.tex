@@ -90,3 +90,80 @@
   string=[b]",
   morestring=[b]',
 }[keywords,comments,strings]
+%------------------------------
+% CSL (Cerebras Systems Language) SPECS
+%------------------------------
+\lstdefinelanguage{CSL}{
+  morekeywords={%
+    const, var, fn, struct, enum, comptime, inline, export, pub, extern,
+    if, else, while, for, switch, case, default, break, continue, return,
+    try, catch, defer, async, await, suspend, resume, nosuspend,
+    and, or, not, null, undefined, true, false,
+    u8, u16, u32, u64, u128, i8, i16, i32, i64, i128, f16, f32, f64, f128,
+    bool, void, type, anytype, noreturn, c_int, c_uint, c_long, c_ulong,
+    usize, isize, comptime_int, comptime_float,
+    @get_dsd, @fmovs, @fmacs, @fmuls, @fadds, @mov32, @add16, @sub16,
+    @add32, @sub32, @mul16, @mul32, @shl16, @shl32, @shr16, @shr32,
+    @and16, @and32, @or16, @or32, @xor16, @xor32, @not16, @not32,
+    @bitcast, @intCast, @floatCast, @truncate, @as, @alignCast,
+    @ptrCast, @ptrToInt, @intToPtr, @offsetOf, @sizeOf, @alignOf,
+    @TypeOf, @typeInfo, @typeName, @hasDecl, @hasField, @tagName,
+    @errorName, @errorReturnTrace, @frameAddress, @returnAddress,
+    @call, @fieldParentPtr, @byteOffsetOf, @bitOffsetOf, @divTrunc,
+    @divFloor, @divExact, @rem, @mod, @sqrt, @sin, @cos, @tan, @exp,
+    @log, @fabs, @floor, @ceil, @round, @min, @max, @clz, @ctz, @popCount,
+    @bswap, @bitReverse, @import, @cImport, @cInclude, @cDefine, @cUndef,
+    @embedFile, @panic, @setRuntimeSafety, @setFloatMode, @setEvalBranchQuota,
+    @atomicLoad, @atomicStore, @atomicRmw, @fence, @reduce, @splat,
+    @shuffle, @select, @Vector, @prefetch, @memcpy, @memset, @wasmMemorySize,
+    @wasmMemoryGrow, @setAlignStack, @setCold, @setGlobalLinkage,
+    @setGlobalSection, @inlineCall, @noInlineCall, @unionInit, @enumToInt,
+    @intToEnum, @setFloatMode, @sqrt, @sin, @cos, @exp, @log, @fabs,
+    @floor, @ceil, @trunc, @round, @nearbyint, @rint, @fma, @muladd,
+    @compileError, @compileLog, @setRuntimeSafety, @intToFloat, @floatToInt,
+    @boolToInt, @errSetCast, @intToError, @errorToInt, @enumToInt, @intToEnum,
+    @setEvalBranchQuota, @TypeOf, @frameAddress, @returnAddress, @src,
+    @breakpoint, @trap, @frameSize, @byteSwap, @bitCast, @truncate,
+    @alignCast, @ptrCast, @errdefer, @This, @hasDecl, @hasField, @clz,
+    @ctz, @popCount, @bswap, @bitReverse, @byteOffsetOf, @bitOffsetOf,
+    @divTrunc, @divFloor, @divExact, @rem, @mod, @mulWithOverflow, @addWithOverflow,
+    @subWithOverflow, @shlWithOverflow, @OpaqueType, @frameAddress, @returnAddress,
+    mem1d_dsd, mem4d_dsd, fabric_dsd, tensor_access, .tensor_access
+  },
+  emph={%
+    @get_dsd, @fmovs, @fmacs, @fmuls, @fadds, @mov32, @add16, @sub16,
+    @add32, @sub32, @mul16, @mul32, @shl16, @shl32, @shr16, @shr32,
+    @and16, @and32, @or16, @or32, @xor16, @xor32, @not16, @not32,
+    mem1d_dsd, mem4d_dsd, fabric_dsd, tensor_access
+  },
+  keywordstyle=\color{keywordlila},
+  commentstyle=\color{commentgreen},
+  emphstyle=\color{emphblue},
+  sensitive=true,
+  breaklines=true,
+  numbers=left,
+  numberstyle=\tiny\color{commentgrey},
+  frame=single,
+  captionpos=b,
+  tabsize=4,
+  showstringspaces=false,
+  keepspaces=true,
+  basicstyle=\footnotesize\ttfamily,
+  comment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  string=[b]",
+  morestring=[b]',
+  stringstyle=\color{emphblue},
+  escapeinside={\%*}{*)},
+  moredelim=[is][\color{commentgreen}]{\%*}{\%*},
+  literate=
+    {->}{{$\rightarrow$}}2
+    {<-}{{$\leftarrow$}}2
+    {=>}{{$\Rightarrow$}}2
+    {<=}{{$\leq$}}1
+    {>=}{{$\geq$}}1
+    {!=}{{$\neq$}}1
+    {||}{{$\lor$}}1
+    {&&}{{$\land$}}1
+    {!}{{$\neg$}}1
+}[keywords,comments,strings]
