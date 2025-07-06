@@ -1,4 +1,13 @@
 \chapter{Theoretical Performance Evaluation and Comparison against Roofline Model}
+formalize model!!!
+T_comm = (2r(t_w+t_h) * 4 \text{ bytes}) / (\text{Bandwidth_per_link})
+T_comp = (t_w * t_h * (4r+1) * \text{cycles_per_fmac}) / s_simd
+Pessimistic: T_total = T_comp + T_comm
+Optimistic: T_total = max(T_comp, T_comm) (assuming perfect overlap)
+
+
+update plot!
+
 \label{sec:theory_performance}
 actual roofline plot 
 

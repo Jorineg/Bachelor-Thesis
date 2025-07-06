@@ -1,13 +1,15 @@
 \chapter{Related Work}
-- stencil optimization on gpus? tiling, cache
-- stencil compilers: devito, pochoir, ..?
-- implementation on fpgas or other specielized hardware?
-- 3d stencil on cerebras, other cerebras implementations 
+Optimizing stencil codes has been a long standing research topic.
+For traditional \ac{hpc} architectures, like \ac{cpu} and \ac{gpu}, where this problem is memory bound, most work focuses on cache optimization by using techniques like tiling, loop reordering or temporal blocking.
 
-- multigrid methods
+However, since the \ac{wse} doesn't have a cache hierarchy, these techniques are not applicable and instead the research focus is on the efficient mapping of the stencil grid to the \ac{wse} and data routing strategies.
 
+Lange et al. \cite{lange2016devito} introduced a python based \ac{dsl} for finite difference stencil codes, that generates optimized code for different \ac{hpc} architectures.
 
-\subsection{Stencil algorithms for Cerebras}
-some previous work for 3d stencils, cerebras example.
-cerebras is ideal harware for stencil computation. 
-there is much work on 3d stgencils. nothing yet on 2d 
+Rocki et al. \cite{rocki2020fast} were the first to use the \ac{wse} architecture for stencil computations and layed the foundation for how the memory access in stencil patterns can be replaced by communication between \ac{pe}s holding parts of the grid.
+
+Jacquelin et al. \cite{jacquelin2022massively} implement and analyze a 25-point 3D stencil on the \ac{wse}-2.
+They do this by mapping the z-dimension of the grid to the \ac{pe}s memory while mapping the x and y dimensions to the \ac{wse}-2's \ac{pe}s, so that each \ac{pe} holds a 1D column of the grid.
+Noticably they show almost perfect weak scaling with the an increasing number of \ac{pe}s, meaning that when the number of \ac{pe}s is increased from \numproduct{200 x 200} to the full \ac{wse}-2's maximum dimension of \numproduct{755 x 994} while increasing the problem size by the same factor, the runtime is almost constant with only a 1.5\% increase.
+
+There have also been apporaches for combiling a higher level stencil language to \ac{wse} code as presented by Woo et al. \cite{woo2022disruptive} as well as Sai et al. \cite{sai2024automated} who use a \ac{dsl} to generate code for the \ac{wse}-2. However, these approaches mainly focus on 3D stencils and while they might be able to generate code for 2D stencils, they don't explore topics like tiling of the x and y dimensions. While this idea is probaply impractical for most 3D stencil applications, it is a topic that is a lot more interesting for 2D stencils and therefore the focus of our work.

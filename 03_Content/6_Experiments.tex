@@ -8,8 +8,8 @@ We did several experiments to answer the following questions:
     \item What is the maximum tiling size that fits into the memory of a \ac{pe}?
     \item How does the performance of the generalized algorithm compare to the specialized algorithm for radius 1?
     \item How does the Cerebras implementation compare to highly optimized implementations on traditional \ac{hpc}-Arcitectures (\ac{cpu}, \ac{gpu})?
-    \item (How does a 2d stencil compare to a 3d stencil?)
-    \item What contributes to the cycle count?
+    \item What percentage of the peak performance is achieved for different tile sizes and radii?
+    % \item What contributes to the cycle count?
 \end{enumerate}
 
 All experiments are performed on the cycle accurate simulator that is part of the Cerebras \ac{sdk} of which we used the version 1.3.0.
@@ -79,11 +79,8 @@ This can be confirmed by the tests on the simulator up to a \ac{pe} count of \nu
 
 As shown in \autoref{fig:pe_overhead_non_tiled}, the performance of the non-tiled algorithm scales almost perfectly, with the cycle count remaining constant with minimal fluctuations regardless of the grid size. The one exception is the 3x3 grid, which is significantly faster. We hypothesize this is an artifact of the experimental setup where only the single, inner \ac{pe} is performing computation and does not need to synchronize with other computing neighbors, effectively eliminating the communication latency discussed in \autoref{sec:theoretical_performance_evaluation_and_comparison_against_roofline_model}. For all subsequent experiments, we ensure at least \numproduct{5 x 5} active \acp{pe} - which results in at least \numproduct{3 x 3} \acp{pe} inner \acp{pe} - to provide representative results.
 
-\cite{source} shows that for a 3d stencil that is tested on real hardware, the cycle count scales perfectly with the number of \acp{pe} up to the whole \ac{wse} dimensions (verify this!!!).
-
-We therefore expect that our implementation also scales perfectly (or nearly perfectly) on the real hardware.
-
-
+Jacquelin et al. \cite{jacquelin2022massively} show that for a 3d stencil that is tested on real hardware, the cycle count scales almost perfectly with the number of \acp{pe} up to the whole \ac{wse} dimensions.
+We therefore expect that our implementation also scales nearly perfectly on the real hardware and calculate with this assumption in the following experiments.
 
 \section{Maximum tiling size}
 The maximum tiling size that fits into the memory of a \ac{pe} is limited by the number of memory banks and the size of the data structure registers.
@@ -203,6 +200,23 @@ The results demonstrate the exceptional performance of the non-tiled algorithm. 
 For the \ac{wse}-3 grid size (\numproduct{762 x 1176}), the Cerebras implementation achieves \num{47826087} iterations per second, compared to \num{62743} for the \ac{gpu} with a speedup of 762x.
 
 The performance advantage stems from the direct mapping of grid elements to \acp{pe}, enabling defacto in-memory computation with a memory that is significantly faster than the \ac{gpu} memory. While this approach is limited to grid sizes not exceeding the \ac{wse} dimensions, it provides unparalleled performance for problems that fit within these constraints.
+
+\section{Percentage of peak performance}
+Using the cycle counts per iteration from the simulator, we calculated the percentage of the \ac{wse}-2 and \ac{wse}-3 peak fp32 performance for different tile sizes and radii.
+As described in \autoref{sec:implementation}, the non-tiled implementation and the r1-optimized implementation use \num{6} flops per grid element and iteration while the general tiled implementation uses \num{9} flops per grid element and iteration. From the respectively used tiled sizes in the different experiments, we first calculate the total number of flops per iteration and \ac{pe} and then divide by the measured cycle count per iteration to get an average flops per cycle and \ac{pe}. We find that the maximum number of fp32 operations per cycle and \ac{pe} can be obtained with \texttt{@fadds} instructions, which support a simd width of 2 in \ac{wse}-2 and 4 in \ac{wse}-3, while \texttt{@fmacs} is not supported in simd mode. Using the calculated average flops per cycle and \ac{pe} and the maximum flops per cycle and \ac{pe}, we calculate the percentage of the peak performance \autoref{fig:percent_pflops}.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\linewidth]{percent_pflops.png}
+    \caption{Percentage of peak performance for different tile sizes and radii for \ac{wse}-2 and \ac{wse}-3.}
+    \label{fig:percent_pflops}
+\end{figure}
+
+For radius 1, and the maximum tile size of \numproduct{64 x 64} we reach \num{48}\% of the peak performance for \ac{wse}-2 and \num{36}\% for \ac{wse}-3.
+While these numbers are per \ac{PE}, they also hold for the entire system, if the problem size is large enough to use the whole \ac{wse} dimensions.
+In general, the archived percentage of peak performance mostly increases with the tile size and decreases with the radius.
+
+This is sustained 800 (797,6) TFLOP/s for \ac{wse}-2 and 1430 (1431,3) TFLOP/s for \ac{wse}-3.
 
 \section{What contributes to the cycle count?}
 We analyze the the instruction traces the simulator can record for what contributes to the the measured cycle counts.

@@ -1,26 +1,35 @@
 \chapter{Background}
-etwas mehr als man braucht um die arbeit zu verstehen. Aber nicht viel mehr.
-To me before I wrote this:
-\subsection{Stencil computation}
-Stencil codes can be categorized by various properties like the dimensionality of the grid, the locality of the stencil, the boundary condition or the shape.
-The focus of this work lies on linear, two dimensional star-shaped stencils, meaning that the underlying grid is two dimensional, each cell is only updated by neighbors along the axes and no diagonals and the the new value of a cell is a linear function of the neighbors values.
-The category of stencils that also involve diagonals are called box shaped stencils.
-The boundary condition defines how values on the edges of the grid are handled. A widely used boundary condition is the Dirichlet boundary condition, where the value on the edge elements is constant. We also use soley this boundary condition in this work.
+This chapter provides the necessary background on stencil computations and the unique architectural features of the Cerebras Wafer-Scale Engine (\ac{wse}).
+\subsection{Stencil Computations}
+Stencil computations are a class of algorithms defined by a regular data access pattern on a grid.
+The value of every cell is iteratively updated based on a fixed pattern of its neighbors' values from the previous step.
+This pattern is known as the stencil.
 
-Among the applications for 2d star shaped stencils is the discretization of the Laplacian operator which can be used to solve the heat equation and Poisson's equation.
-The heat equation describes how temperature diffuses through a material over time. The applications among others include Semiconductor Chip Design or Materials Science.
-Poisson's equation relates the electric potential to a charge distribution. It's used to find the voltage field in a region given a set of fixed charges and is used e.g. for sensor design or particle accelerators.
+They can be categorized by several properties, including the dimensionality of the grid, the shape and locality of the stencil, and the boundary conditions applied.
+This thesis focuses on a specific, yet widely applicable, category: \textbf{linear, two-dimensional, star-shaped stencils}.
+This means the computation is performed on a 2D grid, where each cell is updated using only its axis-aligned neighbors (i.e., no diagonals), and the the new cell value is a linear combination of its previous value and its neighbors' values.
+Stencils that also include diagonal neighbors are referred to as box-shaped stencils.
 
-The radius of the stencil defines the distance between the center cell and farthest neighbor used to update the center cell. We can further categorize the stencils by the parameters. If the parameter for all neighbor cells only depends on the distance, the stencil is called symmetric otherwise it is called assymetric.
-Asymmetric stencils for example are used to solve problems that have a direction dependent behavior like advection.
+The boundary condition defines how cells at the edges of the grid are handled.
+A widely used example is the Dirichlet boundary condition, where edge cells are held to a constant value.
+This is the sole boundary condition used in this work.
 
-If the coefficients depend on the absolute position of the grid cell, they are called variying coefficients, in contrast to constant coefficients and are used to solve problems that have a spatially varying behavior like heterogeneous materials.
+Stencils are further defined by their radius, which specifies the maximum distance between the center cell and any neighbor used in the update.
+We can further categorize the stencils by the parameters.
+The stencil's coefficients (or weights) can also be characterized:
 
-Stencil codes can be implemented with different update mechanisms. Updating the whole grid at once is called the Jacobi method. The Gauss-Seidel method in contrast updates the grid without a strict separation of iterations, but using always the newest available value and generally converges faster.
+\begin{itemize}
+    \item If the coefficients for all neighbor cells depend only on their distance from the center, the stencil is symmetric. Otherwise, it is asymmetric. Asymmetric stencils are crucial for modeling direction-dependent phenomena, such as in advection problems.
+    \item If the coefficients are the same for all cells across the grid, they are constant. If they depend on the cell's absolute position, they are variable coefficients, used to model problems with spatially varying properties, like heterogeneous materials.
+\end{itemize}
 
-More complex multigrid methods converge even faster by representing the grid as a hierarchy of grids with different resolutions, starting with a coarse representation. 
+A primary application of 2D star-shaped stencils is the finite-difference discretization of the Laplacian operator, which is fundamental to solving \acp{pde} like the Heat Equation and Poisson's Equation. The Heat Equation describes temperature diffusion, with applications in semiconductor chip design, while Poisson's Equation is used in fields like electrostatics and fluid dynamics.
 
-\subsection{The Cerebras \ac{wse}}
+Stencil codes can be broadly classified by their iterative method. In time-stepping applications, each full-grid update (iteration) represents a discrete step forward in time. Such applications are typically run for a fixed number of iterations. The simplest method for this, which updates the entire grid based on the previous state, is the Jacobi method. Its perfectly parallel nature makes it an ideal candidate for massively parallel architectures.
+
+In contrast, relaxation methods iterate until the grid converges to a steady state. Since the notion of discrete time steps is less strict, methods like the Gauss-Seidel or multigrid methods can be employed to accelerate convergence. These methods often introduce dependencies that break the perfect parallelism of the Jacobi method. While the \ac{wse} could be adapted for such methods, they typically require a global convergence check (an all-reduce operation), which is beyond the scope of this thesis. Therefore, this work focuses exclusively on Jacobi-style updates.
+
+\subsection{The Cerebras Wafer-Scale Engine (\ac{wse})}
 The Cerebras \ac{wse} has very distinct characteristics compared to both \acp{cpu} and \acp{gpu}.
 Instead of seperated compute cores and memory, Cerebras \ac{wse} features several hundred thousand \ac{ce} that each consist of \qty{48}{\kilo\byte} of memory and a compute core. In contrast to traditional hardware, the memory consist soley of ultra fast \ac{sram} with a bandwidth that allows to read \qty{16}{\byte} and write \qty{8}{\byte} per cycle. It is layed out into eight banks with specific restrictions on which banks can be accessed at the same time.
 

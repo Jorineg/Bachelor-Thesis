@@ -141,7 +141,6 @@ The \ac{dsd} configuration for the tiled implementation is shown in \autoref{lst
         .tensor_access = |i, j|{tile_height, tile_width} 
             -> buffer[radius + i, radius + j] 
     });
-
     const buffer_send_west_dsd = @get_dsd(mem4d_dsd, .{ 
         .tensor_access = |i, j|{tile_height, radius} 
             -> buffer[i + radius, j + radius] 
@@ -150,7 +149,6 @@ The \ac{dsd} configuration for the tiled implementation is shown in \autoref{lst
         .tensor_access = |i, j|{tile_height, radius} 
             -> buffer[i + radius, tile_width + j] 
     });
-
     const buffer_recv_west_dsd = @get_dsd(mem4d_dsd, .{ 
         .tensor_access = |i, j|{tile_height, radius} 
             -> buffer[radius + i, j] 
