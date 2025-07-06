@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import math
+from colors import light_blue, blue, light_green, green, light_red, red
 
 # Parameters
 r = 1  # radius
@@ -28,9 +29,9 @@ for t in tile_sizes:
 
 # Create the plot
 plt.figure(figsize=(10, 6))
-plt.plot(tile_sizes, non_tiled_cycles, 'b-', label='Rank 1 non-tiled (constant 7 cycles)')
-plt.plot(tile_sizes, wse2_pessimistic, 'r-', label='Rank 1 WSE-2 pessimistic (s=4)')
-plt.plot(tile_sizes, wse3_optimistic, 'g-', label='Rank 1 WSE-3 optimistic (s=8)')
+plt.plot(tile_sizes, non_tiled_cycles, 'b-', label='Rank 1 non-tiled (constant 7 cycles)', color=blue)
+plt.plot(tile_sizes, wse2_pessimistic, 'r-', label='Rank 1 WSE-2 pessimistic (s=4)', color=green)
+plt.plot(tile_sizes, wse3_optimistic, 'g-', label='Rank 1 WSE-3 optimistic (s=8)', color=red)
 
 plt.xlabel('Tile Size (tile width = tile height)')
 plt.ylabel('Cycles per Iteration')

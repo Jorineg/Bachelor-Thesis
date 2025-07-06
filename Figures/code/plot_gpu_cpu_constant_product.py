@@ -49,6 +49,7 @@ import numpy as np
 import io
 import pandas as pd
 from matplotlib.lines import Line2D
+from colors import blue_to_green_4, light_blue, blue, light_green, green, light_red, red
 
 # Data from the user - updated with new experimental results
 data = """
@@ -121,7 +122,7 @@ CLOCK_HZ = 1.1e9  # 1.1 GHz
 MAX_ON_CHIP_GRID = 762 * 1176  # 896 112
 WSE3_NON_TILED_CYCLES_PER_ITERATION = 23
 
-USE_IPS = True
+USE_IPS = False
 
 # Helper to convert cycles → seconds for given grid size
 def cycles_to_time(cycles_per_iter: int, grid_size: float) -> float:
@@ -241,7 +242,7 @@ print("\n" + "=" * 120)
 # ------------------------------------------------------------------
 
 plt.style.use('seaborn-v0_8-whitegrid')
-fig, ax = plt.subplots(figsize=(12, 8))
+fig, ax = plt.subplots(figsize=(10, 6))
 
 # Get all unique radii from both CPU/GPU and WSE3 data
 use_radii = [0, 1, 2, 4, 6]
@@ -251,7 +252,8 @@ wse3_radii = sorted(set(df_wse3['Radius'].unique()) & set(use_radii))
 all_radii = sorted(set(cpu_gpu_radii + wse3_radii))
 
 # Create color mapping
-colors = plt.cm.nipy_spectral(np.linspace(0.5, 0.1, len(all_radii)))
+# colors = plt.cm.nipy_spectral(np.linspace(0.5, 0.1, len(all_radii)))
+colors = [light_blue] + blue_to_green_4
 color_map = {radius: colors[i] for i, radius in enumerate(all_radii)}
 
 metric = 'Iter/s' if USE_IPS else 'Time (ms)'
@@ -266,7 +268,7 @@ for radius in cpu_gpu_radii:
 for radius in wse3_radii:
     df_wse3_rad = df_wse3[df_wse3['Radius'] == radius].sort_values('Grid Size')
     if not df_wse3_rad.empty:
-        ax.plot(df_wse3_rad['Grid Size'], df_wse3_rad['WSE3 ' + metric], linestyle='-.', color=color_map[radius], marker='o')
+        ax.plot(df_wse3_rad['Grid Size'], df_wse3_rad['WSE3 ' + metric], linestyle=':', color=color_map[radius], marker='o')
 
 # Set log scale for x and y-axis for better visualization
 ax.set_xscale('log')
@@ -287,9 +289,9 @@ first_legend = plt.legend(handles=legend_elements_radius, loc='lower left', titl
 ax.add_artist(first_legend)
 
 legend_elements_device = [
-    Line2D([0], [0], color='black', lw=2, linestyle='-',  marker='o', label='CPU'),
-    Line2D([0], [0], color='black', lw=2, linestyle='--', marker='o', label='GPU'),
-    Line2D([0], [0], color='black', lw=2, linestyle='-.', marker='o', label='WSE-3')
+    Line2D([0], [0], color='black', lw=2, linestyle='-', label='CPU'),
+    Line2D([0], [0], color='black', lw=2, linestyle='--', label='GPU'),
+    Line2D([0], [0], color='black', lw=2, linestyle=':', label='WSE-3')
 ]
 plt.legend(handles=legend_elements_device, loc='lower center', title='Device')
 

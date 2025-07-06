@@ -1,5 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from colors import light_blue_to_blue_3, light_green, green
+
 
 # Data from the benchmark results
 
@@ -29,27 +31,27 @@ wse2_100x100_r5 = np.array([3332, 3340, 3333, 3345, 3355, 3341, 3373, 3369])
 wse3_100x100_r5 = np.array([3369, 3379, 3372, 3378, 3381, 3380, 3380, 3378])
 
 # Create the plot
-plt.figure(figsize=(12, 8))
+plt.figure(figsize=(10, 6))
 
 # Plot data for Grid 10x10, R1
-plt.plot(iterations_10x10_r1, wse2_10x10_r1, 'o-', color='blue', linestyle='-')
-plt.plot(iterations_10x10_r1, wse3_10x10_r1, 'o-', color='blue', linestyle='--')
+plt.plot(iterations_10x10_r1, wse2_10x10_r1, 'o-', color=light_green, linestyle='-')
+plt.plot(iterations_10x10_r1, wse3_10x10_r1, 'o-', color=light_green, linestyle='--')
 
 # Plot data for Grid 10x10, R2
-plt.plot(iterations_10x10_r2, wse2_10x10_r2, 's-', color='red', linestyle='-')
-plt.plot(iterations_10x10_r2, wse3_10x10_r2, 's-', color='red', linestyle='--')
+plt.plot(iterations_10x10_r2, wse2_10x10_r2, 'o-', color=green, linestyle='-')
+plt.plot(iterations_10x10_r2, wse3_10x10_r2, 'o-', color=green, linestyle='--')
 
 # Plot data for Grid 100x100, R1
-plt.plot(iterations_100x100_r1, wse2_100x100_r1, '^-', color='green', linestyle='-')
-plt.plot(iterations_100x100_r1, wse3_100x100_r1, '^-', color='green', linestyle='--')
+plt.plot(iterations_100x100_r1, wse2_100x100_r1, 'o-', color=light_blue_to_blue_3[0], linestyle='-')
+plt.plot(iterations_100x100_r1, wse3_100x100_r1, 'o-', color=light_blue_to_blue_3[0], linestyle='--')
 
 # Plot data for Grid 100x100, R2
-plt.plot(iterations_100x100_r2, wse2_100x100_r2, 'P-', color='purple', linestyle='-')
-plt.plot(iterations_100x100_r2, wse3_100x100_r2, 'P-', color='purple', linestyle='--')
+plt.plot(iterations_100x100_r2, wse2_100x100_r2, 'o-', color=light_blue_to_blue_3[1], linestyle='-')
+plt.plot(iterations_100x100_r2, wse3_100x100_r2, 'o-', color=light_blue_to_blue_3[1], linestyle='--')
 
 # Plot data for Grid 100x100, R5
-plt.plot(iterations_100x100_r5, wse2_100x100_r5, 'D-', color='orange', linestyle='-')
-plt.plot(iterations_100x100_r5, wse3_100x100_r5, 'D-', color='orange', linestyle='--')
+plt.plot(iterations_100x100_r5, wse2_100x100_r5, 'o-', color=light_blue_to_blue_3[2], linestyle='-')
+plt.plot(iterations_100x100_r5, wse3_100x100_r5, 'o-', color=light_blue_to_blue_3[2], linestyle='--')
 
 
 # Add titles and labels
@@ -61,11 +63,11 @@ plt.ylabel('Cycles for Iteration')
 from matplotlib.lines import Line2D
 
 legend_elements_params = [
-    Line2D([0], [0], marker='o', color='w', markerfacecolor='blue', markersize=10, label='Grid: 10x10, Tile: 1x1, R=1'),
-    Line2D([0], [0], marker='s', color='w', markerfacecolor='red', markersize=10, label='Grid: 10x10, Tile: 3x3, R=2'),
-    Line2D([0], [0], marker='^', color='w', markerfacecolor='green', markersize=10, label='Grid: 100x100, Tile: 10x10, R=1'),
-    Line2D([0], [0], marker='P', color='w', markerfacecolor='purple', markersize=10, label='Grid: 100x100, Tile: 10x10, R=2'),
-    Line2D([0], [0], marker='D', color='w', markerfacecolor='orange', markersize=10, label='Grid: 100x100, Tile: 10x10, R=5')
+    Line2D([0], [0], color=light_green, markersize=10, label='Grid: 10x10, Tile: 1x1, R=1'),
+    Line2D([0], [0], color=green, markersize=10, label='Grid: 10x10, Tile: 3x3, R=2'),
+    Line2D([0], [0], color=light_blue_to_blue_3[0], markersize=10, label='Grid: 100x100, Tile: 10x10, R=1'),
+    Line2D([0], [0], color=light_blue_to_blue_3[1], markersize=10, label='Grid: 100x100, Tile: 10x10, R=2'),
+    Line2D([0], [0], color=light_blue_to_blue_3[2], markersize=10, label='Grid: 100x100, Tile: 10x10, R=5')
 ]
 
 legend_elements_wse = [
@@ -78,7 +80,7 @@ first_legend = plt.legend(handles=legend_elements_params, loc='upper right', tit
 plt.gca().add_artist(first_legend)
 
 # Create second legend for the WSE versions
-plt.legend(handles=legend_elements_wse, loc='upper right', title='WSE Version', bbox_to_anchor=(1, 0.7))
+plt.legend(handles=legend_elements_wse, loc='upper right', title='WSE Version', bbox_to_anchor=(1, 0.6))
 
 plt.grid(True)
 plt.xticks(np.arange(1, 11, 1))

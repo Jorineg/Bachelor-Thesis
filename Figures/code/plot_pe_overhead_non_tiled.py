@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.lines import Line2D
 import matplotlib.ticker as mticker
+from colors import blue
 
 # Data from the user
 grid_sizes = ['3x3', '4x4', '5x5', '6x6', '7x7', '8x8', '9x9', '10x10', '15x15', '20x20', '30x30', '50x50']
@@ -13,8 +14,8 @@ wse3_cycles = [17, 21, 23, 23, 22, 24, 23, 23, 23, 23, 23, 23]
 fig, ax = plt.subplots(figsize=(10, 6))
 
 # Plot data
-ax.plot(num_elements, wse2_cycles, 'o-', color='blue', label='WSE2')
-ax.plot(num_elements, wse3_cycles, 'o--', color='blue', label='WSE3')
+ax.plot(num_elements, wse2_cycles, 'o-', color=blue, label='WSE2')
+ax.plot(num_elements, wse3_cycles, 'o--', color=blue, label='WSE3')
 
 # Add titles and labels
 ax.set_title('Cycle Count vs. Grid Size for Non-Tiled Stencil')
@@ -37,8 +38,12 @@ for p, s in zip(num_elements, grid_sizes):
 ax.grid(True, which="major", linestyle='--', alpha=0.7)
 ax.grid(True, which="minor", linestyle=':', alpha=0.5)
 
-ax.legend()
+# remove markers from legend
+legend = ax.legend()
+for line in legend.get_lines():
+    line.set_marker('')
 
+    
 # Save the plot to a file
 plt.savefig('pe_overhead_non_tiled.png', dpi=300, bbox_inches='tight')
 

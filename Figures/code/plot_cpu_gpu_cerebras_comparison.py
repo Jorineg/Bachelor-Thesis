@@ -63,6 +63,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
+from colors import light_blue_to_light_green, light_blue_to_blue_3, light_blue_to_blue_4, blue_to_green_4, blue_to_green_5, light_blue, blue, light_green, green, light_red, red
+
+colors = [light_blue, blue, light_green, green, light_red, red]
 
 matplotlib.use('Agg')
 
@@ -186,7 +189,7 @@ x = np.arange(len(labels))
 width = 0.2
 n = len(radii)
 
-fig, ax = plt.subplots(figsize=(12, 8))
+fig, ax = plt.subplots(figsize=(10, 6))
 
 def custom_format(y):
     s = f'{y:.1e}'
@@ -196,7 +199,7 @@ def custom_format(y):
 for i, r in enumerate(radii):
     offset = (i - n / 2 + 0.5) * width
     values = [data[label][i] for label in labels]
-    rects = ax.bar(x + offset, values, width, label=f'r={r}')
+    rects = ax.bar(x + offset, values, width, label=f'r={r}', color=light_blue_to_blue_4[i])
     ax.bar_label(rects, padding=3, fmt=custom_format, fontsize=12)
 
 # Add some text for labels, title and axes ticks.

@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.lines import Line2D
 import matplotlib.ticker as mticker
+from colors import light_blue, blue, light_green, green, light_red, red
 
 # Data from the benchmark results for tiled PE stability
 
@@ -48,23 +49,23 @@ active_pes_5x5_r3 = [((get_size(w, 3, 5) - 2 * 3) // 5 + 2) ** 2 for w in grid_s
 active_pes_7x7_r7 = [((get_size(w, 7, 7) - 2 * 7) // 7 + 2) ** 2 for w in grid_sizes_7x7_r7]
 
 # Create the plot
-fig, ax = plt.subplots(figsize=(12, 8))
+fig, ax = plt.subplots(figsize=(10, 6))
 
 # Plot data for Tile 1x1, Radius 1
-ax.plot(active_pes_1x1_r1, wse2_1x1_r1, 'o-', color='blue')
-ax.plot(active_pes_1x1_r1, wse3_1x1_r1, 'o--', color='blue')
+ax.plot(active_pes_1x1_r1, wse2_1x1_r1, 'o-', color=blue)
+ax.plot(active_pes_1x1_r1, wse3_1x1_r1, 'o--', color=blue)
 
 # Plot data for Tile 5x5, Radius 1
-ax.plot(active_pes_5x5_r1, wse2_5x5_r1, 's-', color='red')
-ax.plot(active_pes_5x5_r1, wse3_5x5_r1, 's--', color='red')
+ax.plot(active_pes_5x5_r1, wse2_5x5_r1, 'o-', color=light_green)
+ax.plot(active_pes_5x5_r1, wse3_5x5_r1, 'o--', color=light_green)
 
 # Plot data for Tile 5x5, Radius 3
-ax.plot(active_pes_5x5_r3, wse2_5x5_r3, '^-', color='green')
-ax.plot(active_pes_5x5_r3, wse3_5x5_r3, '^--', color='green')
+ax.plot(active_pes_5x5_r3, wse2_5x5_r3, 'o-', color=green)
+ax.plot(active_pes_5x5_r3, wse3_5x5_r3, 'o--', color=green)
 
 # Plot data for Tile 7x7, Radius 7
-ax.plot(active_pes_7x7_r7, wse2_7x7_r7, 'D-', color='orange')
-ax.plot(active_pes_7x7_r7, wse3_7x7_r7, 'D--', color='orange')
+ax.plot(active_pes_7x7_r7, wse2_7x7_r7, 'o-', color=red)
+ax.plot(active_pes_7x7_r7, wse3_7x7_r7, 'o--', color=red)
 
 # Add titles and labels
 ax.set_title('Stencil PE Stability Benchmark Results (Tiled)')
@@ -74,10 +75,10 @@ ax.set_yscale('log')
 
 # Create custom legends
 legend_elements_params = [
-    Line2D([0], [0], marker='o', color='w', markerfacecolor='blue', markersize=10, label='Tile 1x1, Radius 1'),
-    Line2D([0], [0], marker='s', color='w', markerfacecolor='red', markersize=10, label='Tile 5x5, Radius 1'),
-    Line2D([0], [0], marker='^', color='w', markerfacecolor='green', markersize=10, label='Tile 5x5, Radius 3'),
-    Line2D([0], [0], marker='D', color='w', markerfacecolor='orange', markersize=10, label='Tile 7x7, Radius 7')
+    Line2D([0], [0], color=blue, markersize=10, label='Tile 1x1, Radius 1'),
+    Line2D([0], [0], color=light_green, markersize=10, label='Tile 5x5, Radius 1'),
+    Line2D([0], [0], color=green, markersize=10, label='Tile 5x5, Radius 3'),
+    Line2D([0], [0], color=red, markersize=10, label='Tile 7x7, Radius 7')
 ]
 
 legend_elements_wse = [
@@ -90,7 +91,7 @@ first_legend = ax.legend(handles=legend_elements_params, loc='upper right', titl
 ax.add_artist(first_legend)
 
 # Create second legend for the WSE versions
-ax.legend(handles=legend_elements_wse, loc='upper right', title='WSE Version', bbox_to_anchor=(1, 0.82))
+ax.legend(handles=legend_elements_wse, loc='upper right', title='WSE Version', bbox_to_anchor=(1, 0.75))
 
 # Customize grid
 ax.grid(True, which="major", linestyle='--', alpha=0.7)

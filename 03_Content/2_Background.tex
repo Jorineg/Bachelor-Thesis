@@ -1,25 +1,24 @@
 \chapter{Background}
 etwas mehr als man braucht um die arbeit zu verstehen. Aber nicht viel mehr.
 To me before I wrote this:
-\subsection{Stencil computation: what is it used for, what can it do}
-The focus of this work is a 2d star-shaped stencil. There is an underlying 2d grid of values of size mxn.  
-2d star shaped stencil with radius 1 is discretization of the Laplacian operator.
-Used to solve:
-\begin{itemize}
-    \item Heat Equation: describes how temperature T diffuses through a material over time t. Used e.g. for Semiconductor Chip Design and Materials Science
-    \item Poisson's Equation: relates the electric potential $\varphi$ to a charge distribution $\rho$. It's used to find the voltage field in a region given a set of fixed charges. Used e.g. for Sensor Design and Particle Accelerators.
-\end{itemize}
+\subsection{Stencil computation}
+Stencil codes can be categorized by various properties like the dimensionality of the grid, the locality of the stencil, the boundary condition or the shape.
+The focus of this work lies on linear, two dimensional star-shaped stencils, meaning that the underlying grid is two dimensional, each cell is only updated by neighbors along the axes and no diagonals and the the new value of a cell is a linear function of the neighbors values.
+The category of stencils that also involve diagonals are called box shaped stencils.
+The boundary condition defines how values on the edges of the grid are handled. A widely used boundary condition is the Dirichlet boundary condition, where the value on the edge elements is constant. We also use soley this boundary condition in this work.
 
-- boundary conditions: Dirichlet, Neumann, periodic
-Different boundary critiera. Widely used is Dirichlet border which we focus on in this work.
-Jacobi method and Gauss-Seidel method. we implement Jacobi.
+Among the applications for 2d star shaped stencils is the discretization of the Laplacian operator which can be used to solve the heat equation and Poisson's equation.
+The heat equation describes how temperature diffuses through a material over time. The applications among others include Semiconductor Chip Design or Materials Science.
+Poisson's equation relates the electric potential to a charge distribution. It's used to find the voltage field in a region given a set of fixed charges and is used e.g. for sensor design or particle accelerators.
 
-- linear, non-linear
-- star shaped, box shaped, radius
-- symmetric or assymetric
-- variable coefficients
-- Jacobi, Gauss-Seidel
+The radius of the stencil defines the distance between the center cell and farthest neighbor used to update the center cell. We can further categorize the stencils by the parameters. If the parameter for all neighbor cells only depends on the distance, the stencil is called symmetric otherwise it is called assymetric.
+Asymmetric stencils for example are used to solve problems that have a direction dependent behavior like advection.
 
+If the coefficients depend on the absolute position of the grid cell, they are called variying coefficients, in contrast to constant coefficients and are used to solve problems that have a spatially varying behavior like heterogeneous materials.
+
+Stencil codes can be implemented with different update mechanisms. Updating the whole grid at once is called the Jacobi method. The Gauss-Seidel method in contrast updates the grid without a strict separation of iterations, but using always the newest available value and generally converges faster.
+
+More complex multigrid methods converge even faster by representing the grid as a hierarchy of grids with different resolutions, starting with a coarse representation. 
 
 \subsection{The Cerebras \ac{wse}}
 The Cerebras \ac{wse} has very distinct characteristics compared to both \acp{cpu} and \acp{gpu}.
