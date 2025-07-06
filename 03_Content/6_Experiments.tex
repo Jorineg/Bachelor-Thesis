@@ -213,10 +213,10 @@ As described in \autoref{sec:implementation}, the non-tiled implementation and t
 \end{figure}
 
 For radius 1, and the maximum tile size of \numproduct{64 x 64} we reach \num{48}\% of the peak performance for \ac{wse}-2 and \num{36}\% for \ac{wse}-3.
-While these numbers are per \ac{PE}, they also hold for the entire system, if the problem size is large enough to use the whole \ac{wse} dimensions.
+While these numbers are per \ac{pe}, they also hold for the entire system, if the problem size is large enough to use the whole \ac{wse} dimensions.
 In general, the archived percentage of peak performance mostly increases with the tile size and decreases with the radius.
 
-This is sustained 800 (797,6) TFLOP/s for \ac{wse}-2 and 1430 (1431,3) TFLOP/s for \ac{wse}-3.
+In the optimal configuraion, our implementation reaches a sustained performance of 800 (797,6) TFLOP/s for \ac{wse}-2 and 1430 (1431,3) TFLOP/s for \ac{wse}-3.
 
 \section{What contributes to the cycle count?}
 We analyze the the instruction traces the simulator can record for what contributes to the the measured cycle counts.
