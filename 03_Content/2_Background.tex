@@ -1,6 +1,6 @@
 \chapter{Background}
 This chapter provides the necessary background on stencil computations and the unique architectural features of the Cerebras Wafer-Scale Engine (\ac{wse}).
-\subsection{Stencil Computations}
+\section{Stencil Computations}
 Stencil computations are a class of algorithms defined by a regular data access pattern on a grid.
 The value of every cell is iteratively updated based on a fixed pattern of its neighbors' values from the previous step.
 This pattern is known as the stencil.
@@ -36,7 +36,7 @@ In contrast, relaxation methods iterate until the grid converges to a steady sta
     \label{fig:stencil_visualization}
 \end{figure}
 
-\subsection{The Cerebras Wafer-Scale Engine (\ac{wse})}
+\section{The Cerebras Wafer-Scale Engine (\ac{wse})}
 The Cerebras \ac{wse} has very distinct characteristics compared to both \acp{cpu} and \acp{gpu}.
 Instead of seperated compute cores and memory, Cerebras \ac{wse} features several hundred thousand \ac{ce} that each consist of \qty{48}{\kilo\byte} of memory and a compute core. In contrast to traditional hardware, the memory consist soley of ultra fast \ac{sram} with a bandwidth that allows to read \qty{16}{\byte} and write \qty{8}{\byte} per cycle. It is layed out into eight banks with specific restrictions on which banks can be accessed at the same time.
 
