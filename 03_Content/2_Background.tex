@@ -29,6 +29,13 @@ Stencil codes can be broadly classified by their iterative method. In time-stepp
 
 In contrast, relaxation methods iterate until the grid converges to a steady state. Since the notion of discrete time steps is less strict, methods like the Gauss-Seidel or multigrid methods can be employed to accelerate convergence. These methods often introduce dependencies that break the perfect parallelism of the Jacobi method. While the \ac{wse} could be adapted for such methods, they typically require a global convergence check (an all-reduce operation), which is beyond the scope of this thesis. Therefore, this work focuses exclusively on Jacobi-style updates.
 
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\linewidth]{stencil_visualization.png}
+    \caption{A 2D star-shaped stencil pattern with radius 2}
+    \label{fig:stencil_visualization}
+\end{figure}
+
 \subsection{The Cerebras Wafer-Scale Engine (\ac{wse})}
 The Cerebras \ac{wse} has very distinct characteristics compared to both \acp{cpu} and \acp{gpu}.
 Instead of seperated compute cores and memory, Cerebras \ac{wse} features several hundred thousand \ac{ce} that each consist of \qty{48}{\kilo\byte} of memory and a compute core. In contrast to traditional hardware, the memory consist soley of ultra fast \ac{sram} with a bandwidth that allows to read \qty{16}{\byte} and write \qty{8}{\byte} per cycle. It is layed out into eight banks with specific restrictions on which banks can be accessed at the same time.

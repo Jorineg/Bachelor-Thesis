@@ -12,3 +12,5 @@ They do this by mapping the z-dimension of the grid to the \ac{pe}s memory while
 Noticably they show almost perfect weak scaling with the an increasing number of \ac{pe}s, meaning that when the number of \ac{pe}s is increased from \numproduct{200 x 200} to the full \ac{wse}-2's maximum dimension of \numproduct{755 x 994} while increasing the problem size by the same factor, the runtime is almost constant with only a 1.5\% increase.
 
 There have also been apporaches for compiling higher level stencil languages to code for the \ac{wse} as presented by Woo et al. \cite{woo2022disruptive} as well as Sai et al. \cite{sai2024automated}. However, these approaches mainly focus on 3D stencils and while they might be able to generate code for 2D stencils, they don't explore topics like tiling of the x and y dimensions. While this idea is probaply impractical for most 3D stencil applications, it is a lot more promising for 2D stencils and therefore the focus of our work.
+
+Existing work analyzes only one specific stencil pattern at a time and does not explore the effects of different radii, directly comparing the low-order and high-order stencil patterns on the \ac{wse}.
