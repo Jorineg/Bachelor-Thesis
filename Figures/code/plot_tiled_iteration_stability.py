@@ -86,6 +86,6 @@ plt.grid(True)
 plt.xticks(np.arange(1, 11, 1))
 
 # Save the plot to a file
-plt.savefig('tiled_iteration_stability.png')
+plt.savefig('tiled_iteration_stability.png', dpi=300, bbox_inches='tight')	
 
 print("Plot saved as tiled_iteration_stability.png") 

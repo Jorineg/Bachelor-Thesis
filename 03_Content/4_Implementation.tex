@@ -137,10 +137,17 @@ Where $f$ determines the color used to send data east and $1-f$ is used to recei
 
 \subsection{\ac{pe} Program}
 
+% \begin{figure}
+%     \centering
+%     \animategraphics[autoplay,loop,controls=false,width=\linewidth]{0.5}{stencil_frames/frame_0}{0}{8}
+%     \caption{Animation of the computational steps for one iteration of the tiled algorithm with radius $r=2$. Each frame highlights the rectangular region of the buffer being accessed and multiplied by a weight, with the result accumulated. The sequence demonstrates how the algorithm iterates through the halo regions as the values for the next iteration are computed. (Note: Animation may require a compatible PDF viewer).}
+%     \label{fig:stencil_algorithm_animation}
+% \end{figure}
+
 \begin{figure}
     \centering
-    \animategraphics[autoplay,loop,controls=false,width=\linewidth]{0.5}{stencil_frames/frame_0}{0}{8}
-    \caption{Animation of the computational steps for one iteration of the tiled algorithm with radius $r=2$. Each frame highlights the rectangular region of the buffer being accessed and multiplied by a weight, with the result accumulated. The sequence demonstrates how the algorithm iterates through the halo regions as the values for the next iteration are computed. (Note: Animation may require a compatible PDF viewer).}
+    \includegraphics[width=0.7\linewidth]{stencil_static.png}
+    \caption{Visualization of the computational steps for one iteration of the tiled algorithm with radius $r=1$ and tile size $5\times 3$. Selected regions in the buffer are each multiplied with a weight and added to the accumulator.}
     \label{fig:stencil_algorithm_animation}
 \end{figure}
 
@@ -201,7 +208,14 @@ If only \texttt{@fmacs} instructions were used, the accumulator would have to be
     \caption{Tiled algorithm code}\label{alg:tiled_algorithm}
 \end{algorithm}
 
-The Dirichlet border is implemented by using a ring of \acp{pe} that only send and receive data from their neighbors and do not participate in the computation. If $r<t_w$ or $r<t_h$ the border \acp{pe} values are padded with zeros to fill their buffer. Re refer to the \acp{pe} that only send and receive data from their neighbors as border \acp{pe}, the ones that participate in the computation as inner \acp{pe} and the set of both of these as active \acp{pe}.
+The static border is implemented by using a ring of \acp{pe} that only send and receive data from their neighbors and do not participate in the computation. If $r<t_w$ or $r<t_h$ the border \acp{pe} values are padded with zeros to fill their buffer. We refer to the \acp{pe} that only send and receive data from their neighbors as border \acp{pe}, the ones that participate in the computation as inner \acp{pe} and the set of both of these as active \acp{pe}.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.7\linewidth]{pe_arrangement.png}
+    \caption{Visualization of the PE arrangement for the tiled implementation showing border and inner \acp{pe} as well as static, dynamic and zero-padded grid regions.}
+    \label{fig:pe_arrangement}
+\end{figure}
 
 \begin{table}[h]
     \centering
