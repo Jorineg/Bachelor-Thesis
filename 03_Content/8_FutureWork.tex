@@ -1,14 +1,13 @@
-\chapter{Future Work}
-While we show that the \ac{wse} can be used effectively to accelerate two-dimensional stencil codes and how tiling across the x and y dimensions can be used to achieve higher throughput, a lot more work is needed to further optimize the performance, extend the approach to other stencil patterns and automize code generation for the \ac{wse}.
+\chapter{Discussion and Future Work}
+While we show that the \ac{wse} can be used effectively to accelerate two-dimensional stencil codes and how tiling across the x and y dimensions can be used to achieve higher throughput, a lot more work is needed to further optimize the performance, extend the approach to other stencil patterns and automizing code generation for the \ac{wse}.
 
-\section{Optimizations}
-Specific optimizations that could be applied to the implementation include the strict overlap of communication and computation, which would be relatively easy to implement for radius 1 and requires a lot more complex code for higher radii. Overhead could also be reduced by working with explicit \ac{dsr} assignment and better utilization of border \acp{pe}.
+Specific optimizations that could be applied to the implementation include the strict overlap of communication and computation.
+which would be relatively easy to implement for radius 1 and requires a lot more complex code for higher radii. Overhead could also be reduced by working with explicit \ac{dsr} assignment and better utilization of border \acp{pe}.
 
 Furthermore, we couln't achive the full \ac{simd} width for the \texttt{@fadds} instruction and even for the \texttt{@fmacs} instruction that has a maximum \ac{simd} width of one, we could not achieve a sustained throughput of one operation per cycle.
 This is mainly because of two-dimesional memory access patterns that are very hard to align with the strict memory access requirements needed to achive full \ac{simd} width, but might also be due to inherent limitations of \texttt{@mem4d\_dsd}s.
 In any case, more work on this problem is needed to make use of the \ac{wse}s full potential.
 
-\section{Extending the Approach}
 Box-shaped stencil patterns, longer communication routes, non-linear stencils or an efficient all-reduce implementation would all be valueable extensions to make the \ac{wse} a more versatile tool for stencil computations, especially, if implemented within the context of a \ac{dsl} \cite{woo2022disruptive,sai2024automated}.
 
 
