@@ -96,8 +96,8 @@ for tile_y in range(tiles_y):
 # Create legend
 legend_elements = [
     patches.Patch(facecolor='white', label='Zero padding', edgecolor='black', linewidth=0.5),
-    patches.Patch(facecolor=light_green, label='Static grid region'),
-    patches.Patch(facecolor=light_blue, label='Dynamic grid region')
+    patches.Patch(facecolor=light_blue, label='Static grid region'),
+    patches.Patch(facecolor=light_green, label='Dynamic grid region')
 ]
 ax.legend(handles=legend_elements, loc='upper right', bbox_to_anchor=(1.0, 1.0))
 
