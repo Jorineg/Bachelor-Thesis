@@ -6,7 +6,7 @@ import numpy as np
 fig, ax = plt.subplots(figsize=(10, 6))
 
 # Grid dimensions (show a reasonable section to demonstrate the pattern)
-width, height = 12, 8
+width, height = 8, 5
 
 # Define colors for each value (0-5)
 colors = ['#a6cee3', '#1f78b4', '#b2df8a', '#33a02c', '#fb9a99', '#e31a1c']
@@ -34,6 +34,9 @@ for i in range(width):
 ax.set_xlim(0, width)
 ax.set_ylim(0, height)
 ax.set_aspect('equal')
+
+# remove axis
+ax.axis('off')
 
 # Add grid lines for clarity
 ax.set_xticks(range(width + 1))

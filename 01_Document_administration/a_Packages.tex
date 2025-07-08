@@ -133,9 +133,11 @@
 	isbn=true,				% print isbn in references
 	maxbibnames=99,			% maximum number of authors (to avoid et al./u.a. in references
 	maxcitenames=2,			% maximum number of authors in text
-	sorting=nyt,			% sort in order year-name-title
+	% sorting=nyt,			% sort in order year-name-title
+	sorting=none,
 	sortlocale=auto,		% sorting of the references automatically using babel
-	style=authoryear-comp,		% style of the references
+	% style=authoryear-comp,		% style of the references
+	style=numeric,
 	uniquelist=false,		% author list is not unique (Author A, Author B, Author C = Author A et al.)	
 	uniquename=false,		% see biblatex documentation (basically checks if all authors can be identified by their last name)
 	url=true				% print url in the references

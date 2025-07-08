@@ -5,7 +5,7 @@ While we show that the \ac{wse} can be used effectively to accelerate two-dimens
 Specific optimizations that could be applied to the implementation include the strict overlap of communication and computation, which would be relatively easy to implement for radius 1 and requires a lot more complex code for higher radii. Overhead could also be reduced by working with explicit \ac{dsr} assignment and better utilization of border \acp{pe}.
 
 Furthermore, we couln't achive the full \ac{simd} width for the \texttt{@fadds} instruction and even for the \texttt{@fmacs} instruction that has a maximum \ac{simd} width of one, we could not achieve a sustained throughput of one operation per cycle.
-This is mainly because of two-dimesional memory access patterns that are very hard to align with the strict memory access requirements needed to achive full \ac{simd} width, but might also be due to inherent limitations of \texttt{@mem4d_dsd}s.
+This is mainly because of two-dimesional memory access patterns that are very hard to align with the strict memory access requirements needed to achive full \ac{simd} width, but might also be due to inherent limitations of \texttt{@mem4d\_dsd}s.
 In any case, more work on this problem is needed to make use of the \ac{wse}s full potential.
 
 \section{Extending the Approach}

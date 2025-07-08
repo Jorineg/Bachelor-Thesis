@@ -1,24 +1,28 @@
 \chapter{Theoretical Performance Evaluation and Comparison against Roofline Model}
-formalize model!!!
-T_comm = (2r(t_w+t_h) * 4 \text{ bytes}) / (\text{Bandwidth_per_link})
-T_comp = (t_w * t_h * (4r+1) * \text{cycles_per_fmac}) / s_simd
-Pessimistic: T_total = T_comp + T_comm
-Optimistic: T_total = max(T_comp, T_comm) (assuming perfect overlap)
+\label{sec:theory_performance}
+% formalize model!!!
+% T_comm = (2r(t_w+t_h) * 4 \text{ bytes}) / (\text{Bandwidth_per_link})
+% T_comp = (t_w * t_h * (4r+1) * \text{cycles_per_fmac}) / s_simd
+% Pessimistic: T_total = T_comp + T_comm
+% Optimistic: T_total = max(T_comp, T_comm) (assuming perfect overlap)
+
 
 
 update plot!
-
-\label{sec:theory_performance}
-actual roofline plot 
+actual roofline plot ???
 
 In this section the theoretical best performance of the implemented algorithms given the Cerebras hardware constraints is analyzed.
-We assume the data type to be float32.
-The cycle count for one iteration of the stencil is limited by following factors:
+We assume the data type to be float32 throughout this section.
+We find that the cycle count for one stencil iteration is limited by following factors:
 \begin{itemize}
-    \item Communication time, i.e. total amount of data send and received per iteration divided by link throughput
-    \item Computation time, i.e. total amount of computation per iteration divided by computation throughput
-    \item Communication delay, i.e. total amount of time spent waiting for data while no computation can be done
+    \item Communication time ($T_{comm}$), i.e. the total amount of data send and received divided by link throughput
+    \item Computation time ($T_{comp}$), i.e. total amount of computation divided by peak performance
+    \item Communication delay ($T_{delay}$), i.e. total amount of time spent waiting for data while no computation can be done
 \end{itemize}
+
+An optimistic estimate for the total achivable cycle count assumes perfect overlap between the three limiting factors, while a pessimistic estimate assumes no overlap.
+
+
 
 \section{Radius 1, no tiling}
 The \ac{ce} must receive the values from its four neighbors. Since the link capacity between the router and \ac{ce} is 32 bit per cycle, this will take four cycles in the best case.

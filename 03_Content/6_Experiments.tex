@@ -12,11 +12,18 @@ We did several experiments to answer the following questions:
     % \item What contributes to the cycle count?
 \end{enumerate}
 
-All experiments are performed on the cycle accurate simulator that is part of the Cerebras \ac{sdk} of which we used the version 1.3.0.
+All experiments regarding the \ac{wse} are performed on the cycle accurate simulator that is part of the Cerebras \ac{sdk} of which we used the version 1.3.0.
 Using the simulator limits the number of \acp{pe} and number of iterations so that the data needs to be extrapolated to the whole grid.
 We examine to what extend extrapolation is possible in the first two experiments.
 
 We count the cycles used per iteration in the simulator and use this together with the clock speed of the \ac{wse} to calculate the time per iteration.
+
+
+"his method of measuring kernel runtime performance by recording clock
+cycles is used throughout this paper whenever runtime data is reported and is the
+standard method for recording performance data on Cerebras machines "
+
+------------------------------- standard methodology.-----------------------
 
 One difference between the simulator and the real hardware is that the simulator does use a single clock for all cores, while the real hardware has a separate clock for each core. (verify this!!!) Because these clocks are not perfectly synchronized, especially experiments with a large number of \acp{pe} could differ in the cycle count. Although this is not guaranteed for our algorithm, (source) find that in practice the slighly desynchronized clocks improve overall performance compared to the simulator. 
 
@@ -109,7 +116,7 @@ However, the non-tiled algorithm is naturally limited to a radius of 1 and a gri
 \end{figure}
 
 \section{Comparison of Cerebras and traditional \ac{hpc}-Arcitectures}
-We conducted two more experiments to compare the performance of the implemented stencil on the Cerebras \ac{wse} with highly optimized Devito implementations for \ac{cpu} and \ac{gpu}. The experiments were conducted using the Vast.ai cloud.
+We conducted two more experiments to compare the performance of the implemented stencil on the Cerebras \ac{wse} with highly optimized Devito implementations for \ac{cpu} and \ac{gpu}. We used the same symmetric, constant coefficients for the \ac{wse} and the \ac{cpu} and \ac{gpu} implementations. The experiments were conducted in the Vast.ai cloud.
 For the \ac{cpu} experiments we used a system with two AMD EPYC 9554 64-Core processors. The system has a total of \qty{128}{\mega\byte} of L2 cache and \qty{512}{\mega\byte} of L3 cache. It is equipped with \qty{1511}{\giga\byte} of DDR5 memory.
 The system is furthermore equipped with a NVIDIA H100 SXM 80GB, which was used for the \ac{gpu} experiments. The system had CUDA 12.8 installed and we used python 3.12.11, Devito 4.8.19, Cupy 13.4.1 and the nvc compiler in version 25.5.
 
