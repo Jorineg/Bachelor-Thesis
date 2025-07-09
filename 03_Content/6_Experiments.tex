@@ -32,7 +32,7 @@ For this experiment, we fix the grid size, tile size and radius and run the simu
 After two iterations of varying cycle count, the cycle is mostly stable.
 For a grid size of 10x10, the cycle count per iteration is $16\pm1$ on \ac{wse}-2 and $23\pm1$ on \ac{wse}-3.
 
-For a grid of 10x10, and a tile size of 1x1 and radius 1, the tiled algorithm achives $127\pm0$ cycles per iteration on \ac{wse}-2 and $156\pm1$ cycles per iteration on \ac{wse}-3.
+For a grid of 10x10, and a tile size of 1x1 and radius 1, the tiled algorithm achieves $127\pm0$ cycles per iteration on \ac{wse}-2 and $156\pm1$ cycles per iteration on \ac{wse}-3.
 
 A larger problem size with a grid of 100x100, tile size of 10x10 and radius 5, results in a cycle count per iteration of $3353\pm20$ on \ac{wse}-2 and $3377\pm5$ on \ac{wse}-3.
 
@@ -221,7 +221,7 @@ As described in \autoref{sec:implementation}, the non-tiled implementation and t
 
 For radius 1, and the maximum tile size of \numproduct{64 x 64} we reach \num{48}\% of the peak performance for \ac{wse}-2 and \num{36}\% for \ac{wse}-3.
 While these numbers are per \ac{pe}, they also hold for the entire system, if the problem size is large enough to use the whole \ac{wse} dimensions.
-In general, the archived percentage of peak performance mostly increases with the tile size and decreases with the radius.
+In general, the achieved percentage of peak performance mostly increases with the tile size and decreases with the radius.
 
 In the optimal configuraion, our implementation reaches a sustained performance of 800 (797,6) TFLOP/s for \ac{wse}-2 and 1430 (1431,3) TFLOP/s for \ac{wse}-3.
 
