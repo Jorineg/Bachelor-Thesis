@@ -225,10 +225,10 @@ The static border is implemented by using a ring of \acp{pe} that only send and 
         \toprule
         Operation & Cerebras Op Code & Count & Flops \\
         \midrule
-        fmac & \texttt{@fmacs} & $5r-1$ & $10r-2$ \\
+        fmac & \texttt{@fmacs} & $4r$ & $8r$ \\
         mul & \texttt{@fmuls} & \num{1} & \num{1} \\
         \midrule
-        total & & $5r$ & $10r-1$ \\
+        total & & $4r+1$ & $8r+1$ \\
         \bottomrule
     \end{tabular}
 \end{table}

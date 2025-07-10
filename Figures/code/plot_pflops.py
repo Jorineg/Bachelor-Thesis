@@ -52,7 +52,7 @@ def calculate_percent_pflops(tile_width, tile_height, radius, cycles_per_iter, p
     if radius == 1:
         flops_per_cell_per_iter = 6  # r1 optimized version
     else:
-        flops_per_cell_per_iter = 9  # normal version
+        flops_per_cell_per_iter = 4*radius*2 + 1  # normal version
     
     # Calculate total flops for 1 PE
     total_flops_per_iter = tile_height * tile_width * flops_per_cell_per_iter

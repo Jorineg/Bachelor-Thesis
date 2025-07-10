@@ -1,54 +1,94 @@
-\chapter{Theoretical Performance Evaluation and Comparison against Roofline Model}
+\chapter{Theoretical Performance Evaluation}
 \label{sec:theory_performance}
-% formalize model!!!
-% T_comm = (2r(t_w+t_h) * 4 \text{ bytes}) / (\text{Bandwidth_per_link})
-% T_comp = (t_w * t_h * (4r+1) * \text{cycles_per_fmac}) / s_simd
-% Pessimistic: T_total = T_comp + T_comm
-% Optimistic: T_total = max(T_comp, T_comm) (assuming perfect overlap)
+To understand the performance characteristics and limitations of our tiled stencil implementations on the \ac{wse}-3, we develop a simplified performance model for the maximum possible throughput per \ac{pe}. This will help us to understand if the problem is compute-bound or communication-bound. It also allows us to see, how close our implementation is to the theoretical machine limits.
+
+The stencil performance is limited by two main factors: the time it takes for a \ac{pe} to receive all data needed for the computation of one iteration ($C_{comm}$) and the time it takes to perform the computation itself ($C_{comp}$). Unlike traditional hardware the memory on the \ac{pe} is never a bottleneck, as it is designed with a bandwidth and latency to provide data at the same speed the \ac{ce} can process it.
+
+As a starting point for calculating the possible throughput, we are interested in number of cycles needed for one iteration. We model this number in the context of two different scenarios. First, we describe an optimistic theoretical limit $C_{ideal}$ that assumes perfect overlap between communication and computation. That means communication and computation can be done in parallel and the cycle count is defined by whatever takes longer.
+
+\begin{equation}
+    \label{eq:c_ideal}
+    C_{ideal} = max\left(C_{comp}, C_{comm}\right)
+\end{equation}
+
+% This model estimates the theoretical maximum performance of tiled 2D star-shaped stencils on the \ac{wse} in general.
+
+Our implementation however does not overlap communication and computation. The two are implemented as distinct tasks and are executed sequentially. To better predict the performance of our implementation, we therefore define a second scenario $C_{sequential}$ where the cycle count for one iteration is defined as the sum of the communication and computation.
+
+\begin{equation}
+    \label{eq:c_sequential}
+    C_{sequential} = C_{comp} + C_{comm}
+\end{equation}
+
+We will now analyze the two components in more detail. The computation each \ac{pe} needs to perform is defined by the number of cells it needs to process and the operations it needs to perform on each cell. If the operations support \ac{simd} execution it can run in parallel on multiple cells at once. We can calculate the cycles by dividing the respective operation count by the operation's \ac{simd} width.
+
+We seperately analyze $C_{comp}$ for the r1-optimized and the general implementation. The r1-optimized implementation uses 4 \texttt{@fadds} instructions that support \ac{simd} execution with a \ac{simd} width of four and 2 \texttt{@fmuls} instructions that only have a \ac{simd} width of one.
+
+\begin{equation}
+    \begin{aligned}
+        \label{eq:c_comp_r1}
+        C_{comp}^{r1} &= t_h t_w \left(\frac{4}{4} + \frac{2}{1}\right) \\
+        &= t_h t_w \left(1 + 2\right) \\
+        &= 3 t_h t_w
+    \end{aligned}
+\end{equation}
+
+The general implementation uses $4r$ \texttt{@fmacs} and one \texttt{@fmuls} instruction, both of which only support a \ac{simd} width of one.
+
+\begin{equation}
+    \label{eq:c_comp_general}
+    \begin{aligned}
+        C_{comp}^{general} &= t_h t_w \left(\frac{4r}{1} + \frac{1}{1}\right) \\
+        &= t_h t_w \left(4r + 1\right) \\
+        &= 4r t_h t_w + t_h t_w
+    \end{aligned}
+\end{equation}
 
 
+The communication time $C_{comm}$ is defined by the number of elements that each \ac{pe} sends and receives. As we use 32 bit floating point numbers and the link between the router and \ac{ce} supports exactly 32 bit per cycle, the number of cycles needed for communication is just the number of elements that each \ac{pe} sends and receives. Although the bidirectional link between router and \ac{ce} would allow parallel sending and receiving, the \ac{ce} is not able to run these two operations in parallel. As each \ac{pe} sends the same number of elements as it receives, we can count the received elements and multiply by two. The halo region that need to be filled with the neighbors data have $r t_w$ elements each in the north and south direction and $r t_h$ elements in the east and west direction. The total communication cycles are then:
 
-update plot!
-actual roofline plot ???
+\begin{equation}
+    \label{eq:c_comm}
+    \begin{aligned}
+        C_{comm} &= C_{send} + C_{recv} \\
+        C_{comm} &= 2\left(2 r t_w + 2 r t_h\right) \\
+        &= 4r\left(t_w+t_h\right)
+    \end{aligned}
+\end{equation}
 
-In this section the theoretical best performance of the implemented algorithms given the Cerebras hardware constraints is analyzed.
-We assume the data type to be float32 throughout this section.
-We find that the cycle count for one stencil iteration is limited by following factors:
-\begin{itemize}
-    \item Communication time ($T_{comm}$), i.e. the total amount of data send and received divided by link throughput
-    \item Computation time ($T_{comp}$), i.e. total amount of computation divided by peak performance
-    \item Communication delay ($T_{delay}$), i.e. total amount of time spent waiting for data while no computation can be done
-\end{itemize}
+Putting it all together, we can use the cycle count, tile size and clock frequency of the \ac{wse}-3 to calculate the theoretical total throughput in cells per second for the whole system. Each \ac{pe} computes a tile of size $t_w \times t_h$ in $C_{ideal}$ or $C_{sequential}$ cycles. If the physical dimensions of the \ac{wse}-3 are $P_h \times P_w$ and the clock frequency is $f_{clk}$, the total throughput is given by:
 
-An optimistic estimate for the total achivable cycle count assumes perfect overlap between the three limiting factors, while a pessimistic estimate assumes no overlap.
+\begin{equation}
+    \label{eq:throughput_ideal}
+    \begin{aligned}
+        T_{ideal} &= \frac{P_h P_w f_{clk} t_w t_h}{C_{ideal}} \\
+        &= \frac{P_h P_w f_{clk} t_w t_h}{max\left(C_{comp}, C_{comm}\right)}
+    \end{aligned}
+\end{equation}
 
+Analyzing the term $max\left(C_{comp}, C_{comm}\right)$, we find that for all cases with a tile size greater or equal to \numproduct{2 x 2}, the computation term exceeds the communication term, simplifying the throughput equation for the general implementation to:
 
+\begin{equation}
+    \label{eq:throughput_ideal_simplified}
+    \begin{aligned}
+        T_{ideal} &= \frac{P_h P_w f_{clk} t_w t_h}{C_{comp}^{general}} \\
+        &= \frac{P_h P_w f_{clk} t_w t_h}{5r t_h t_w} \\
+        &= \frac{P_h P_w f_{clk}}{5r}
+    \end{aligned}
+\end{equation}
 
-\section{Radius 1, no tiling}
-The \ac{ce} must receive the values from its four neighbors. Since the link capacity between the router and \ac{ce} is 32 bit per cycle, this will take four cycles in the best case.
+The computation term exceeding the communication term also means that the problem transitions from being communication-bound up to a tile size of \numproduct{2 x 2} (or \numproduct{3 x 3} for the r1-optimized implementation) to being compute-bound for larger tile sizes.
 
-The received data can immediately be used for computation as the \texttt{@fadds} and \texttt{@fmacs} commands can use dsds of type \texttt{fabin\_dsd} as an input. This means most of the computation can be done during the receiving of the data. Only one extra cycle is necessary to take into account the old $value$. With a clever implementation this extra computation could be executed during the communication delay idle time so that it doesn't affect the overall cycle count.
+The throughput for the sequential model and the general implementation is given by:
+\begin{equation}
+    \label{eq:throughput_sequential}
+    \begin{aligned}
+        T_{sequential} &= \frac{P_h P_w f_{clk} t_w t_h}{C_{sequential}} \\
+        &= \frac{P_h P_w f_{clk} t_w t_h}{C_{comp}^{general} + C_{comm}} \\
+        &= \frac{P_h P_w f_{clk} t_w t_h}{5r t_h t_w + 4r\left(t_w+t_h\right)} \\
+    \end{aligned}
+\end{equation}
 
-Sending takes one cycle from \ac{ce} to its router, another cycle from the router to its neighbors routers and a third cycle from these routers to the neighbors \acp{ce}. This results in three cycles for the communication delay.
+It essentially models a smoother transition between the problem being communication-bound and compute-bound as for small tiles sizes, both terms are significant and for larger tile sizes the significance of the communication term decreases.
 
-In total this results in seven cycles per stencil operation that could be achieved in theory.
-Note that this is independent of the actual grid size (as long as it fits onto the \ac{wse}).
-
-\section{Any radius and tiling}
-Similarly to before the total computation for one iteration can be split up into the same three fundamental steps. We now need to take the radius $r$, tile width $t_w$ and tile height $t_h$ into account.
-
-Each \ac{pe} needs data from its four neighbors. $r\cdot t_w$ elements from the northern and southern neighbors and $r\cdot t_h$ elements from the western and eastern neighbors. This results in $2r(t_w+t_h)$ total elements and cycles for data receiving.
-
-During the computation $4r+1$ multiply-add operations per grid element are required which results in $t_wt_h(4r+1)$ multiply-add operations per \ac{pe}. With SIMD execution we can parallelize this and divide it by the SIMD width for \texttt{@famcs} which is 4 on wse-2 and 8 on wse-3. This results in $\left\lceil\frac{t_wt_h(4r+1)}{s}\right\rceil$. This term exceeds the communication term for most parameter combinations of $t_w,\ t_h$ and $r$. Assuming the first part of the computation could still be done during communication, we can drop the communication term completely. Note that this is a rather optimistic assumption and likely not achievable with the hardware.
-
-The communication delay is in this case negligible and could be overlapped with the computation in a way that it doesn't affect the cycle count. 
-
-This results in a total cycle count of $\left\lceil\frac{t_wt_h(4r+1)}{s}\right\rceil$ which is just the computation time and assuming we can fully overlap the communication time as an optimistic estimate. As a slightly pessimistic estimate we get $\left\lceil\frac{t_wt_h(4r+1)}{s}\right\rceil+2r(t_w+t_h)$ which assumes no possible overlap between communication and computation. 
-
-It becomes clear that for radius 1 the tiled stencil gets significantly slower than the non-tiled implementation. 
-\begin{figure}
-    \centering
-    \includegraphics[width=0.5\linewidth]{stencil_performance_comparison.png}
-    \caption{Cycles per iteration for tiled and non-tiled stencils theoretical performance with radius 1}
-    \label{fig:enter-label}
-\end{figure} 
+In the following section, we will compare the theoretical performance with the performance our actual implementation could achieve on the \ac{wse}-3.

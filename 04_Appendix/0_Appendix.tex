@@ -1,10 +1,31 @@
-% \input{04_Appendix/1_Appendix}
-% \input{04_Appendix/2_Appendix}
-% \input{04_Appendix/3_Appendix}
-% \input{04_Appendix/4_Appendix}
-% \input{04_Appendix/5_Appendix}
-% \input{04_Appendix/6_Appendix}
+\section{Usage of \ac{ai}}
+Throughout this thesis, we used generative \ac{ai} systems for various tasks.
+Below is an explanation of each type of task and how we used \ac{ai} to assist us.
 
+\subsection{Code Generation}
+The core of this thesis, the kernel code in \ac{csl}, was manually written by the author. Current \ac{ai} systems are not capable of generating correct code for \ac{csl} due to its novelty and very limited number of open-source implementations. They also lack a deep understanding of the different programming paradigms enabled by the architecture of the \ac{wse}. Still, within the code editor Cursor, code completion at the level of "advanced copy and paste" was used to assist in the process. For other parts of the code, however, different \ac{ai} systems were used heavily to completely implement or help with implementing tasks, including setting up, running, and gathering the results for experiments and the implementation of the stencil in Devito. Most plots were generated with Matplotlib, with code mostly written by \ac{ai}.
 
-\chapter{AI usage}
-Ai was used ...
+\subsection{Systematic Research}
+Deep-research \ac{ai} systems were used to help with systematic research. This included the search for relevant literature and determining the exact contributions of specific papers. Furthermore, they were used to gain a broad understanding of stencil computations, their applications, and how stencils can be categorized.
+
+\subsection{Writing}
+To improve the quality of the writing, \ac{ai} systems were used to proofread the text, double-check calculations, correct grammar and spelling mistakes, gather high-level feedback about the correctness and understandability of the text, and improve the structure of the text and provide suggestions for improvements.
+
+\subsection{List of \ac{ai} Systems Used}
+The following is a list of the \ac{ai} systems used, the organization they were developed by, and their purpose:
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{llll}
+        \toprule
+        Product name & Manufacturer & Version & Purpose \\
+        \midrule
+        Cursor & Anysphere & 1.0.0 & Code completion \\
+        Gemini & Google & 2.5 Pro & Writing, systematic research, code generation \\
+        Deep Research powered by Gemini 2.5 Pro & Google & - & Systematic research \\
+        Claude & Anthropic &  3.7 Sonnet & Code generation \\
+        GPT & OpenAI & 4.1 & Code generation \\
+        o3 & OpenAI & - & Code generation, Writing (especially for checking math) \\
+        Deep Research powered by o3-mini & OpenAI & - & Systematic research \\
+    \end{tabular}
+\end{table}
