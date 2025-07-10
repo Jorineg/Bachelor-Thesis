@@ -1,49 +1,48 @@
 # ========================================================================================================================
 # PERFORMANCE COMPARISON TABLE
-# ========================================================================================================================   
+# ========================================================================================================================
 # Grid Size  Radius CPU Gcells/s GPU Gcells/s WSE3 Gcells/s GPU→CPU Speedup WSE3→GPU Speedup
-#     1e+04     0.0          N/A          N/A        478.26             N/A              N/A
-#     1e+04     1.0         4.52         1.03         70.06            0.23            68.18
-#     1e+04     2.0         2.62         1.03         32.45            0.39            31.56
-#     1e+04     3.0         1.81         1.03         20.91            0.57            20.36
-#     1e+04     4.0         1.53         1.02         13.61            0.67            13.30
-#     1e+04     5.0         1.19         1.03          7.92            0.86             7.72
-#     1e+04     6.0         1.00         1.02          5.85            1.02             5.72
-#     1e+05     0.0          N/A          N/A       4782.61             N/A              N/A
-#     1e+05     1.0         4.52         9.59        700.64            2.12            73.07
-#     1e+05     2.0         2.46         9.55        324.48            3.88            33.96
-#     1e+05     3.0         1.86         9.68        209.13            5.19            21.60
-#     1e+05     4.0         1.53         9.71        136.14            6.35            14.03
-#     1e+05     5.0         1.19         9.61         79.19            8.08             8.24
-#     1e+05     6.0         1.00         9.45         58.54            9.49             6.19
-#     9e+05     0.0          N/A          N/A      42857.53             N/A              N/A
-#     1e+06     1.0         6.21        67.25       6790.12           10.83           100.97
-#     1e+06     2.0         3.55        65.53       3244.84           18.47            49.52
-#     1e+06     3.0         2.25        63.21       2091.25           28.05            33.08
-#     1e+06     4.0         1.66        63.13       1361.39           37.98            21.56
-#     1e+06     5.0         1.26        59.92        791.94           47.51            13.22
-#     1e+06     6.0         1.00        57.67        585.42           57.74            10.15
-#     1e+07     1.0         3.82       131.41      45267.49           34.39           344.49
-#     1e+07     2.0         2.39       126.42      14725.57           52.86           116.48
-#     1e+07     3.0         1.81       120.05       9417.81           66.30            78.45
-#     1e+07     4.0         1.57       119.19       5952.38           75.72            49.94
-#     1e+07     5.0         1.20       104.71       4174.57           86.98            39.87
-#     1e+07     6.0         0.99       100.00       3012.05          100.94            30.12
-#     1e+08     1.0         2.71        55.56     162721.89           20.46          2928.99
-#     1e+08     2.0         2.21        52.74      64782.10           23.86          1228.27
-#     1e+08     3.0         1.70        74.85      40695.52           44.14           543.69
-#     1e+08     4.0         1.51        53.36      34203.98           35.35           640.98
-#     1e+08     5.0         1.33        53.56      25845.86           40.22           482.54
-#     1e+08     6.0         1.16        67.52      23245.98           58.42           344.27
-#     1e+09     1.0         3.41        13.55     207586.34            3.98         15319.87
-#     1e+09     2.0         2.40        13.52      65884.04            5.64          4874.10
-#     1e+09     3.0         1.86        13.48      60014.19            7.27          4451.85
-#     1e+09     4.0         1.51        13.38      40362.53            8.87          3016.70
-#     1e+09     5.0         1.33        13.19      32641.92            9.91          2474.26
-#     1e+09     6.0         1.12        13.16      25717.76           11.71          1954.55
+#     1e+04     0.0          N/A          N/A        380.43             N/A              N/A
+#     1e+04     1.0         4.52         1.03         55.73            0.23            54.23
+#     1e+04     2.0         2.62         1.03         25.81            0.39            25.11
+#     1e+04     3.0         1.81         1.03         16.63            0.57            16.20
+#     1e+04     4.0         1.53         1.02         10.83            0.67            10.58
+#     1e+04     5.0         1.19         1.03          6.30            0.86             6.14
+#     1e+04     6.0         1.00         1.02          4.66            1.02             4.55
+#     1e+05     0.0          N/A          N/A       3804.35             N/A              N/A
+#     1e+05     1.0         4.52         9.59        557.32            2.12            58.12
+#     1e+05     2.0         2.46         9.55        258.11            3.88            27.01
+#     1e+05     3.0         1.86         9.68        166.35            5.19            17.19
+#     1e+05     4.0         1.53         9.71        108.29            6.35            11.16
+#     1e+05     5.0         1.19         9.61         62.99            8.08             6.56
+#     1e+05     6.0         1.00         9.45         46.57            9.49             4.93
+#     9e+05     0.0          N/A          N/A      34091.22             N/A              N/A
+#     1e+06     1.0         6.21        67.25       5401.23           10.83            80.32
+#     1e+06     2.0         3.55        65.53       2581.12           18.47            39.39
+#     1e+06     3.0         2.25        63.21       1663.50           28.05            26.32
+#     1e+06     4.0         1.66        63.13       1082.92           37.98            17.15
+#     1e+06     5.0         1.26        59.92        629.95           47.51            10.51
+#     1e+06     6.0         1.00        57.67        465.67           57.74             8.07
+#     1e+07     1.0         3.82       131.41      36008.23           34.39           274.02
+#     1e+07     2.0         2.39       126.42      11713.52           52.86            92.65
+#     1e+07     3.0         1.81       120.05       7491.44           66.30            62.40
+#     1e+07     4.0         1.57       119.19       4734.85           75.72            39.73
+#     1e+07     5.0         1.20       104.71       3320.68           86.98            31.71
+#     1e+07     6.0         0.99       100.00       2395.95          100.94            23.96
+#     1e+08     1.0         2.71        55.56     129437.87           20.46          2329.88
+#     1e+08     2.0         2.21        52.74      51531.21           23.86           977.03
+#     1e+08     3.0         1.70        74.85      32371.44           44.14           432.48
+#     1e+08     4.0         1.51        53.36      27207.71           35.35           509.87
+#     1e+08     5.0         1.33        53.56      20559.21           40.22           383.84
+#     1e+08     6.0         1.16        67.52      18491.12           58.42           273.85
+#     1e+09     1.0         3.41        13.55     165125.50            3.98         12186.26
+#     1e+09     2.0         2.40        13.52      52407.76            5.64          3877.13
+#     1e+09     3.0         1.86        13.48      47738.56            7.27          3541.25
+#     1e+09     4.0         1.51        13.38      32106.56            8.87          2399.64
+#     1e+09     5.0         1.33        13.19      25965.16            9.91          1968.16
+#     1e+09     6.0         1.12        13.16      20457.31           11.71          1554.76
 
-# ========================================================================================================================   
-
+# ========================================================================================================================
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -122,7 +121,7 @@ df_cpu_gpu['GPU Time (ms)'] = df_cpu_gpu['GPU Time (s)'] * 1000
 # updates.
 
 TOTAL_WORK = 10 ** 10
-CLOCK_HZ = 1.1e9  # 1.1 GHz
+CEREBRAS_WSE3_CLOCK_RATE = 875e6
 MAX_ON_CHIP_GRID = 762 * 1176  # 896 112
 WSE3_NON_TILED_CYCLES_PER_ITERATION = 23
 
@@ -132,7 +131,7 @@ METRIC_TYPE = "gcells"
 # Helper to convert cycles → seconds for given grid size
 def cycles_to_time(cycles_per_iter: int, grid_size: float) -> float:
     iterations = TOTAL_WORK / grid_size
-    return cycles_per_iter * iterations / CLOCK_HZ
+    return cycles_per_iter * iterations / CEREBRAS_WSE3_CLOCK_RATE
 
 # Cycles data organised by (grid_size, radius):
 wse3_cycles = {
@@ -155,7 +154,7 @@ for grid_size, radius_dict in wse3_cycles.items():
                 # Non-tiled version (23 cycles)
                 time_s = cycles_to_time(WSE3_NON_TILED_CYCLES_PER_ITERATION, grid_size)
                 time_ms = time_s * 1000
-                iter_per_sec = 1.0 / (WSE3_NON_TILED_CYCLES_PER_ITERATION / CLOCK_HZ)
+                iter_per_sec = 1.0 / (WSE3_NON_TILED_CYCLES_PER_ITERATION / CEREBRAS_WSE3_CLOCK_RATE)
                 iterations = TOTAL_WORK / grid_size
                 gcells_per_sec = (grid_size * iterations) / time_s / 1e9
                 wse3_rows.append({'Grid Size': grid_size, 'Radius': 0, 'WSE3 Iter/s': iter_per_sec, 'WSE3 Time (s)': time_s, 'WSE3 Time (ms)': time_ms, 'WSE3 Gcells/s': gcells_per_sec})
@@ -164,7 +163,7 @@ for grid_size, radius_dict in wse3_cycles.items():
                 # Tiled version (original cycles)
                 time_s = cycles_to_time(cycles, grid_size)
                 time_ms = time_s * 1000
-                iter_per_sec = 1.0 / (cycles / CLOCK_HZ)
+                iter_per_sec = 1.0 / (cycles / CEREBRAS_WSE3_CLOCK_RATE)
                 iterations = TOTAL_WORK / grid_size
                 gcells_per_sec = (grid_size * iterations) / time_s / 1e9
                 wse3_rows.append({'Grid Size': grid_size, 'Radius': radius, 'WSE3 Iter/s': iter_per_sec, 'WSE3 Time (s)': time_s, 'WSE3 Time (ms)': time_ms, 'WSE3 Gcells/s': gcells_per_sec})
@@ -172,7 +171,7 @@ for grid_size, radius_dict in wse3_cycles.items():
             # Other radii (unchanged)
             time_s = cycles_to_time(cycles, grid_size)
             time_ms = time_s * 1000
-            iter_per_sec = 1.0 / (cycles / CLOCK_HZ)
+            iter_per_sec = 1.0 / (cycles / CEREBRAS_WSE3_CLOCK_RATE)
             iterations = TOTAL_WORK / grid_size
             gcells_per_sec = (grid_size * iterations) / time_s / 1e9
             wse3_rows.append({'Grid Size': grid_size, 'Radius': radius, 'WSE3 Iter/s': iter_per_sec, 'WSE3 Time (s)': time_s, 'WSE3 Time (ms)': time_ms, 'WSE3 Gcells/s': gcells_per_sec})

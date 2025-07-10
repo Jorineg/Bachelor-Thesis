@@ -1,3 +1,28 @@
+# Peak Performance Analysis:
+# Tile Product | Radius |    WSE2 %    |    WSE3 %
+# --------------------------------------------------
+#           1 | 1 (NT) |        18.75 |         6.52
+#           1 |    1.0 |         2.36 |         0.96
+#           2 |    1.0 |         4.58 |         1.85
+#           4 |    2.0 |        12.55 |         5.01
+#          14 |    1.0 |        18.10 |         8.64
+#          16 |    4.0 |        34.06 |        16.34
+#          28 |    2.0 |        33.76 |        15.93
+#          36 |    6.0 |        47.44 |        23.47
+#          56 |    4.0 |        51.08 |        25.00
+#          84 |    6.0 |        56.49 |        28.18
+#         126 |    1.0 |        44.95 |        27.96
+#         126 |    2.0 |        64.67 |        31.54
+#         126 |    4.0 |        65.17 |        32.32
+#         126 |    6.0 |        64.95 |        32.62
+#        1204 |    1.0 |        46.66 |        34.08
+#        1204 |    2.0 |        61.36 |        30.65
+#        1204 |    4.0 |        73.12 |        36.45
+#        1204 |    6.0 |        69.14 |        34.48
+#        4096 |    1.0 |        48.63 |        36.30
+#        4096 |    2.0 |        82.19 |        41.21
+
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -198,7 +223,7 @@ print(f"Non-tiled version: Tile 1x1 → WSE2: {non_tiled_wse2_cycles} cycles/ite
 print(f"Plot saved as 'percent_pflops.png'")
 
 # Show constant product analysis
-print("\nConstant Product Analysis:")
+print("\nPeak Performance Analysis:")
 print("Tile Product | Radius |    WSE2 %    |    WSE3 %")
 print("-" * 50)
 print(f"          1 | 1 (NT) | {non_tiled_wse2_percent_pflops:12.2f} | {non_tiled_wse3_percent_pflops:12.2f}")  # Non-tiled entry

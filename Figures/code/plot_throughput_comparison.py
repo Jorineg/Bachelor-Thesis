@@ -1,3 +1,57 @@
+# Summary Statistics:
+# WSE-3 Constants:
+#   Clock frequency: 0.9 GHz
+#   Physical dimensions: 762×1176 PEs
+#   Total PEs: 896,112
+
+# Experimental data points: 38
+# Theoretical data points per radius: 64
+# Radii analyzed: [1, 2, 6]
+# Tile product range: 1 to 4096
+
+# Experimental vs Theoretical Comparison:
+# Tile Size | Radius | Experimental | T_max | T_ours | Exp/T_max | Exp/T_ours
+# --------------------------------------------------------------------------------
+#      1.0 |    1.0 |      4994.25 | 98012.25 | 71281.64 |     0.051 |      0.070
+#      4.0 |    1.0 |     17719.73 | 196024.50 | 112014.00 |     0.090 |      0.158
+#      4.0 |    2.0 |      9251.89 | 87122.00 | 46123.41 |     0.106 |      0.201
+#      9.0 |    1.0 |     35821.74 | 261366.00 | 138370.24 |     0.137 |      0.259
+#      9.0 |    2.0 |     16842.20 | 87122.00 | 54704.51 |     0.193 |      0.308
+#     16.0 |    1.0 |     95767.69 | 261366.00 | 156819.60 |     0.366 |      0.611
+#     16.0 |    2.0 |     26245.96 | 87122.00 | 60315.23 |     0.301 |      0.435
+#     25.0 |    1.0 |    102630.63 | 261366.00 | 170456.09 |     0.393 |      0.602
+#     25.0 |    2.0 |     30870.00 | 87122.00 | 64270.33 |     0.354 |      0.480
+#     49.0 |    1.0 |    129362.97 | 261366.00 | 189265.03 |     0.495 |      0.684
+#     49.0 |    2.0 |     38305.88 | 87122.00 | 69477.04 |     0.440 |      0.551
+#     49.0 |    6.0 |     14525.82 | 31363.92 | 24612.94 |     0.463 |      0.590
+#    100.0 |    1.0 |    140519.35 | 261366.00 | 206341.58 |     0.538 |      0.681
+#    100.0 |    2.0 |     45800.12 | 87122.00 | 73971.51 |     0.526 |      0.619
+#    100.0 |    6.0 |     18762.81 | 31363.92 | 26312.01 |     0.598 |      0.713
+#    225.0 |    1.0 |    163656.82 | 261366.00 | 221914.53 |     0.626 |      0.737
+#    225.0 |    2.0 |     51615.58 | 87122.00 | 77890.53 |     0.592 |      0.663
+#    225.0 |    6.0 |     17838.43 | 31363.92 | 27804.89 |     0.569 |      0.642
+#    400.0 |    1.0 |    175413.42 | 261366.00 | 230617.06 |     0.671 |      0.761
+#    400.0 |    2.0 |     68600.00 | 87122.00 | 80010.00 |     0.787 |      0.857
+#    400.0 |    6.0 |     23484.78 | 31363.92 | 28616.72 |     0.749 |      0.821
+#    625.0 |    1.0 |    171830.73 | 261366.00 | 236174.10 |     0.657 |      0.728
+#    625.0 |    2.0 |     60137.59 | 87122.00 | 81337.97 |     0.690 |      0.739
+#    625.0 |    6.0 |     21432.81 | 31363.92 | 29126.97 |     0.683 |      0.736
+#    900.0 |    1.0 |    176952.91 | 261366.00 | 240030.00 |     0.677 |      0.737
+#    900.0 |    2.0 |     56768.42 | 87122.00 | 82248.04 |     0.652 |      0.690
+#    900.0 |    6.0 |     22384.32 | 31363.92 | 29477.37 |     0.714 |      0.759
+#   1600.0 |    1.0 |    185915.35 | 261366.00 | 245030.62 |     0.711 |      0.759
+#   1600.0 |    2.0 |     74322.09 | 87122.00 | 83414.68 |     0.853 |      0.891
+#   1600.0 |    6.0 |     24902.87 | 31363.92 | 29927.40 |     0.794 |      0.832
+#   2500.0 |    1.0 |    184458.93 | 261366.00 | 248132.28 |     0.706 |      0.743
+#   2500.0 |    2.0 |     58434.54 | 87122.00 | 84130.69 |     0.671 |      0.695
+#   2500.0 |    6.0 |     22972.52 | 31363.92 | 30204.08 |     0.732 |      0.761
+#   3600.0 |    1.0 |    189357.54 | 261366.00 | 250244.04 |     0.724 |      0.757
+#   3600.0 |    2.0 |     75866.18 | 87122.00 | 84614.89 |     0.871 |      0.897
+#   3600.0 |    6.0 |     25362.34 | 31363.92 | 30391.40 |     0.809 |      0.835
+#   4096.0 |    1.0 |    189769.88 | 261366.00 | 250911.36 |     0.726 |      0.756
+#   4096.0 |    2.0 |     76055.35 | 87122.00 | 84767.35 |     0.873 |      0.897
+
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -5,7 +59,7 @@ from matplotlib.lines import Line2D
 from colors import light_blue, blue, light_green, green, light_red, red, blue_to_green_4
 
 # Constants for WSE-3
-CLOCK_FREQ = 1.1e9  # 1.1 GHz
+CEREBRAS_WSE3_CLOCK_RATE = 875e6
 PHYSICAL_WIDTH = 762  # P_w
 PHYSICAL_HEIGHT = 1176  # P_h
 USE_RADII = [1, 2, 6]
@@ -88,7 +142,7 @@ def calculate_c_comm(t_w, t_h, radius):
 def calculate_throughput(cycles_per_iter, t_w, t_h):
     """Calculate throughput in Gcells/s based on equation from the document"""
     # T = P_h * P_w * f_clk * t_w * t_h / C_iter
-    throughput = (PHYSICAL_HEIGHT * PHYSICAL_WIDTH * CLOCK_FREQ * t_w * t_h) / cycles_per_iter
+    throughput = (PHYSICAL_HEIGHT * PHYSICAL_WIDTH * CEREBRAS_WSE3_CLOCK_RATE * t_w * t_h) / cycles_per_iter
     return throughput / 1e9  # Convert to Gcells/s
 
 def calculate_theoretical_bounds(t_w, t_h, radius):
@@ -191,9 +245,9 @@ ax.set_title('WSE-3 Throughput: Experimental vs Theoretical Upper Bounds', fonts
 # Create custom legends
 legend_elements_bounds = [
     Line2D([0], [0], color='black', lw=2, linestyle='-', 
-           label='T_max (perfect overlap)'),
+           label='T_ideal (perfect overlap)'),
     Line2D([0], [0], color='black', lw=2, linestyle='--', 
-           label='T_ours (no overlap)'),
+           label='T_sequential (no overlap)'),
     Line2D([0], [0], color='black', lw=2, linestyle=':', marker='^', 
            markersize=6, label='Experimental')
 ]
@@ -226,7 +280,7 @@ print("Plot saved as 'throughput_comparison_wse3.png'")
 # Print summary statistics
 print("\nSummary Statistics:")
 print(f"WSE-3 Constants:")
-print(f"  Clock frequency: {CLOCK_FREQ/1e9:.1f} GHz")
+print(f"  Clock frequency: {CEREBRAS_WSE3_CLOCK_RATE/1e9:.1f} GHz")
 print(f"  Physical dimensions: {PHYSICAL_WIDTH}×{PHYSICAL_HEIGHT} PEs")
 print(f"  Total PEs: {PHYSICAL_WIDTH * PHYSICAL_HEIGHT:,}")
 print(f"\nExperimental data points: {len(df_exp)}")

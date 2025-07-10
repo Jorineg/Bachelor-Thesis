@@ -39,8 +39,7 @@ The general implementation uses $4r$ \texttt{@fmacs} and one \texttt{@fmuls} ins
     \label{eq:c_comp_general}
     \begin{aligned}
         C_{comp}^{general} &= t_h t_w \left(\frac{4r}{1} + \frac{1}{1}\right) \\
-        &= t_h t_w \left(4r + 1\right) \\
-        &= 4r t_h t_w + t_h t_w
+        &= t_h t_w \left(4r + 1\right)
     \end{aligned}
 \end{equation}
 
@@ -72,8 +71,8 @@ Analyzing the term $max\left(C_{comp}, C_{comm}\right)$, we find that for all ca
     \label{eq:throughput_ideal_simplified}
     \begin{aligned}
         T_{ideal} &= \frac{P_h P_w f_{clk} t_w t_h}{C_{comp}^{general}} \\
-        &= \frac{P_h P_w f_{clk} t_w t_h}{5r t_h t_w} \\
-        &= \frac{P_h P_w f_{clk}}{5r}
+        &= \frac{P_h P_w f_{clk} t_w t_h}{t_h t_w \left(4r + 1\right)} \\
+        &= \frac{P_h P_w f_{clk}}{4r + 1}
     \end{aligned}
 \end{equation}
 
@@ -85,7 +84,7 @@ The throughput for the sequential model and the general implementation is given 
     \begin{aligned}
         T_{sequential} &= \frac{P_h P_w f_{clk} t_w t_h}{C_{sequential}} \\
         &= \frac{P_h P_w f_{clk} t_w t_h}{C_{comp}^{general} + C_{comm}} \\
-        &= \frac{P_h P_w f_{clk} t_w t_h}{5r t_h t_w + 4r\left(t_w+t_h\right)} \\
+        &= \frac{P_h P_w f_{clk} t_w t_h}{t_h t_w \left(4r + 1\right) + 4r\left(t_w+t_h\right)} \\
     \end{aligned}
 \end{equation}
 

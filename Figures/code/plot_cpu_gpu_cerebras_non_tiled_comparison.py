@@ -1,19 +1,20 @@
+# Performance Comparison: CPU, GPU, and Cerebras Non-Tiled Implementation
 # ===========================================================================
 
 # WSE-2 Grid (750 x 994):
 #   CPU: 8,080 IPS
 #   GPU: 74,644 IPS
-#   Cerebras Non-Tiled: 68,750,000 IPS
+#   Cerebras Non-Tiled: 53,125,000 IPS
 
 # WSE-3 Grid (762 x 1176):
 #   CPU: 6,716 IPS
 #   GPU: 70,398 IPS
-#   Cerebras Non-Tiled: 47,826,087 IPS
+#   Cerebras Non-Tiled: 38,043,478 IPS
 # ===========================================================================
 
 # Speedups:
-# WSE-2: GPU vs CPU: 9×, Cerebras vs GPU: 921×, Cerebras vs CPU: 8508×
-# WSE-3: GPU vs CPU: 10×, Cerebras vs GPU: 679×, Cerebras vs CPU: 7121×
+# WSE-2: GPU vs CPU: 9×, Cerebras vs GPU: 712×, Cerebras vs CPU: 6575×
+# WSE-3: GPU vs CPU: 10×, Cerebras vs GPU: 540×, Cerebras vs CPU: 5664×
 # ===========================================================================
 
 import numpy as np
@@ -27,7 +28,8 @@ colors = [light_blue, light_green, light_red]
 matplotlib.use('Agg')
 
 # Constants
-CEREBRAS_CLOCK_RATE = 1.1e9  # 1.1 GHz
+CEREBRAS_WSE2_CLOCK_RATE = 850e6
+CEREBRAS_WSE3_CLOCK_RATE = 875e6
 
 # WSE-2 data (750 x 994 grid)
 wse2_cpu_time = 1.2376  # seconds for 10,000 iterations
@@ -39,7 +41,7 @@ wse2_gpu_iterations = 100000
 wse2_gpu_ips = wse2_gpu_iterations / wse2_gpu_time
 
 wse2_cerebras_cycles_per_iter = 16
-wse2_cerebras_ips = CEREBRAS_CLOCK_RATE / wse2_cerebras_cycles_per_iter
+wse2_cerebras_ips = CEREBRAS_WSE2_CLOCK_RATE / wse2_cerebras_cycles_per_iter
 
 # WSE-3 data (762 x 1176 grid - corrected size)
 wse3_cpu_time = 1.4889  # seconds for 10,000 iterations
@@ -51,7 +53,7 @@ wse3_gpu_iterations = 100000
 wse3_gpu_ips = wse3_gpu_iterations / wse3_gpu_time
 
 wse3_cerebras_cycles_per_iter = 23
-wse3_cerebras_ips = CEREBRAS_CLOCK_RATE / wse3_cerebras_cycles_per_iter
+wse3_cerebras_ips = CEREBRAS_WSE3_CLOCK_RATE / wse3_cerebras_cycles_per_iter
 
 # Print all iterations per second values
 print("Performance Comparison: CPU, GPU, and Cerebras Non-Tiled Implementation")

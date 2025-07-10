@@ -1,43 +1,67 @@
 \chapter{Experiments}
 \label{sec:experiments}
-We did several experiments to answer the following questions:
-\begin{enumerate}
-    \item How stable is the cycle count per iteration?
-    \item Is there any overhead for more \acp{pe}?
-    \item When using a fixed grid size, how does the performance of using more \acp{pe} compare to using larger tiles on fewer \acp{pe}?
-    \item What is the maximum tiling size that fits into the memory of a \ac{pe}?
-    \item How does the performance of the generalized algorithm compare to the specialized algorithm for radius 1?
-    \item How does the Cerebras implementation compare to highly optimized implementations on traditional \ac{hpc}-Arcitectures (\ac{cpu}, \ac{gpu})?
-    \item What percentage of the peak performance is achieved for different tile sizes and radii?
-    % \item What contributes to the cycle count?
-\end{enumerate}
+We ran several experiments to evaluate the performance characteristics of the implemented algorithm, compare its performance on the \ac{wse} to highly optimized implementations on traditional \ac{hpc}-Arcitectures (\ac{cpu}, \ac{gpu}) and assess the possibility to further optimize the algorithm.
 
-All experiments regarding the \ac{wse} are performed on the cycle accurate simulator that is part of the Cerebras \ac{sdk} of which we used the version 1.3.0.
-Using the simulator limits the number of \acp{pe} and number of iterations so that the data needs to be extrapolated to the whole grid.
-We examine to what extend extrapolation is possible in the first two experiments.
+\section{Methodology}
+All experiments for the Cerebras WSE were conducted using the cycle-accurate simulator provided in the Cerebras SDK (v1.3.0).
+Due to the significant computational resources required, simulations were limited to a smaller number of PEs (up to 50x50) and iterations than would be used on physical hardware.
+In order to evaluate the performance our implementation could achieve on a full system, we extrapolated our results to larger numbers of \acp{pe} and iterations.
+We extrapolate to more \acp{pe} by assuming perfect weak scaling, meaning that the cycle count doesn't increase if more \acp{pe} are used when keeping the workload per \ac{pe} constant.
+This is assumption is supported by two key pieces of evidence: The results from \textcite{jacquelin2022scalable}\cite{jacquelin2022scalable} who achieve near-perfect weak scaling for their implementation of a 3d stencil on a \ac{wse}-2 system.
+Furthermore, we run our own weak scaling experiments on the simulator and find that the cycle count is almost constant for the tested number of \acp{pe} \autoref{sec:weak_scaling}.
 
-We count the cycles used per iteration in the simulator and use this together with the clock speed of the \ac{wse} to calculate the time per iteration.
+We measure the runtime of our algorithm by calculating it from the recoreded number of clock cycles used per iteration and the clock speed of the \ac{wse}. This is the standard methodology for recording performance data on Cerebras hardware \cite{jacquelin2022scalable}.
+Specifically, we ran every experiment for four iterations and took the average cycle count of the third and fourth iteration as we found the cycle count could be slightly inaccurate in the first two iterations \autoref{sec:stability_of_cycle_count_per_iteration}.
 
+To comapre the implementation to traditional \ac{hpc} hardware, we implemented our 2D star-shaped stencil using the Devito framework (version 4.8.19) in python (version 3.12.11). For this implementation we used the same symmetric, constant coefficients as we used for the experiments on the \ac{wse}.
+Devito can optimize compile the code for different hardware.
+We used a system with two AMD EPYC 9554 64-Core processors for the \ac{cpu} experiments and a system with one NVIDIA H100 SXM 80GB for the \ac{gpu} experiments. 
+For the \ac{gpu} experiments set Devito to use the OpenACC backend and the nvc compiler in version 25.5. The cuda driver version was 12.8.
+The experiments for \ac{cpu} and \ac{gpu} were conducted in the Vast.ai cloud.
+The system for the \ac{cpu} experiments has a total of \qty{128}{\mega\byte} of L2 cache and \qty{512}{\mega\byte} of L3 cache. It is equipped with \qty{1511}{\giga\byte} of DDR5 memory.
 
-"his method of measuring kernel runtime performance by recording clock
-cycles is used throughout this paper whenever runtime data is reported and is the
-standard method for recording performance data on Cerebras machines "
+%  The system has a total of \qty{128}{\mega\byte} of L2 cache and \qty{512}{\mega\byte} of L3 cache. It is equipped with \qty{1511}{\giga\byte} of DDR5 memory.
 
-------------------------------- standard methodology.-----------------------
+\section{Foundational Characteristics on the WSE}
+Before comparing our stencil implementation for the \ac{wse} to other types of hardware, we first analyze its intrinsic scaling properties and stability.
+This includes our own weak scaling experiments, another set of experiments to analyze if the recored cycle count is stable for differnt numbers of iterations, and finally an analysis of our theoretical performance model and a comparison with it. 
 
-One difference between the simulator and the real hardware is that the simulator does use a single clock for all cores, while the real hardware has a separate clock for each core. (verify this!!!) Because these clocks are not perfectly synchronized, especially experiments with a large number of \acp{pe} could differ in the cycle count. Although this is not guaranteed for our algorithm, (source) find that in practice the slighly desynchronized clocks improve overall performance compared to the simulator. 
+\subsection{Weak Scaling on the \ac{wse}}
+\label{sec:weak_scaling}
+This experiment tries to anwser the question how the runtime of our stencil scales with number of active \acp{pe} when keeping the computational workload for each \ac{pe} constant.
+As every \acp{pe} performs the same fundamental communication and computation steps, independent of how many \ac{pe} there are in total,  we expect the time per iteration to be independent from the number of \acp{pe}.
+This can be confirmed by the results of this experiment in the simulator with up to \num{2500} \ac{pe} for the single-cell and \num{625} for the tiled implementation.
 
-\section{Stability of cycle count per iteration}
-For this experiment, we fix the grid size, tile size and radius and run the simulation for different number of iterations.
-After two iterations of varying cycle count, the cycle is mostly stable.
-For a grid size of 10x10, the cycle count per iteration is $16\pm1$ on \ac{wse}-2 and $23\pm1$ on \ac{wse}-3.
+\begin{figure}[h]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{pe_overhead_non_tiled.png}
+        \caption{Non-tiled algorithm}
+        \label{fig:pe_overhead_non_tiled}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{tiled_pe_stability.png}
+        \caption{Tiled algorithm}
+        \label{fig:tiled_pe_stability}
+    \end{subfigure}
+    \caption{Cycle count per iteration versus the number of active PEs for (a) the non-tiled algorithm and (b) the tiled algorithm. For the non-tiled implementation, the performance is stable for grids larger than 4x4, with the 3x3 grid showing a notably lower cycle count. The tiled implementation demonstrates a relatively stable cycle count for each configuration, independent of the number of active PEs}
+    \label{fig:pe_overhead}
+\end{figure}
 
-For a grid of 10x10, and a tile size of 1x1 and radius 1, the tiled algorithm achieves $127\pm0$ cycles per iteration on \ac{wse}-2 and $156\pm1$ cycles per iteration on \ac{wse}-3.
+As shown in \autoref{fig:pe_overhead_non_tiled}, the performance of the non-tiled algorithm scales almost perfectly, with the cycle count remaining constant with minimal fluctuations regardless of the grid size. The one exception is the \numproduct{3 x 3} grid, which is significantly faster. We hypothesize this is an artifact of the experimental setup where only the single, inner \ac{pe} is performing computation and does not need to synchronize with other computing neighbors, effectively eliminating any communication latency.
+The tiled algorithm doesn't show this behavior and fluctuates by not more than about 1.3\% on the \ac{wse}-3 across all tested grid sizes.
+For all subsequent experiments, we ensure at least \numproduct{5 x 5} active \acp{pe}, which results in at least \numproduct{3 x 3} \acp{pe} inner \acp{pe}, to avoid possible effects as obererved for the single cell implementation with a \numproduct{3 x 3} grid. 
 
-A larger problem size with a grid of 100x100, tile size of 10x10 and radius 5, results in a cycle count per iteration of $3353\pm20$ on \ac{wse}-2 and $3377\pm5$ on \ac{wse}-3.
-
-Because of the high flucuations in the cycle count in the first two iterations, we measure the cycle count in the following experiments as an average of the 3rd and 4th iteration.
-
+\subsection{Iteration Stability}
+\label{sec:stability_of_cycle_count_per_iteration}
+For this experiment, we fix the grid size, tile size and radius and run the simulation for different numbers of iterations to test if the cycle count per iteration remains stable, which this experiment shows to be the case after two iterations of varying cycle count.
+% For our single cell implementaion and a grid size of \numproduct{10 x 10}, the cycle count per iteration is $16\pm1$ on \ac{wse}-2 and $23\pm1$ on \ac{wse}-3.
+% For a grid of \numproduct{10 x 10}, a tile size of \numproduct{1 x 1} and radius 1, the tiled algorithm achieves $127\pm0$ cycles per iteration on \ac{wse}-2 and $156\pm1$ cycles per iteration on \ac{wse}-3.
+% A larger problem size with a grid of 100x100, tile size of 10x10 and radius 5, results in a cycle count per iteration of $3353\pm20$ on \ac{wse}-2 and $3377\pm5$ on \ac{wse}-3.
+Because of the higher flucuations in cycle count in the first two iterations, we measure the cycle count in the following experiments as an average of the 3rd and 4th iteration.
 \begin{figure}[h]
     \centering
     \begin{subfigure}[b]{0.48\textwidth}
@@ -57,57 +81,33 @@ Because of the high flucuations in the cycle count in the first two iterations, 
     \label{fig:iteration_stability}
 \end{figure}
 
-
-
-\section{Overhead for more \acp{pe}}
-\label{sec:pe_overhead}
-A very interesting question is how the performance scales with the number of \acp{pe}.
-As each \ac{pe} is independent from the others, the time per iteration should be independent from the number of \acp{pe}.
-This can be confirmed by the tests on the simulator up to a \ac{pe} count of \num{2500} (\numproduct{50 x 50}) for the non-tiled algorithm and \num{625} (\numproduct{25 x 25}) for the tiled algorithm.
-
+\subsection{Theoretical Performance Model}
+We now analyze the impact of tiling and radius, both in our theoretical performance model and with experiments using our implementation.
 \begin{figure}[h]
     \centering
-    \begin{subfigure}[b]{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{pe_overhead_non_tiled.png}
-        \caption{Non-tiled algorithm}
-        \label{fig:pe_overhead_non_tiled}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{tiled_pe_stability.png}
-        \caption{Tiled algorithm}
-        \label{fig:tiled_pe_stability}
-    \end{subfigure}
-    \caption{Cycle count per iteration versus the number of active PEs for (a) the non-tiled algorithm and (b) the tiled algorithm. For the non-tiled implementation, the performance is stable for grids larger than 4x4, with the 3x3 grid showing a notably lower cycle count. The tiled implementation also demonstrates a consistent cycle count for a given configuration, independent of the number of active PEs.}
-    \label{fig:pe_overhead}
+    \includegraphics[width=0.5\linewidth]{throughput_comparison_wse3.png}
+    \caption{Throughput comparison of theoretical upper bound performance of a perfectly overlapping implementation $T_{ideal}$, an ideal non-overlapping implementation $T_{sequential}$ and the measured throughput of our implementation for different radii and tile sizes.}
+    \label{fig:throughput_comparison_wse3}
 \end{figure}
+We can see that the throughput of the theoretical model scales almost proportial to the inverse of the radius and while the ideal model has a constant throughput for large enough tile sizes, the throughput of sequential model increases as the tile sizes get larger.
+However the difference between $T_{ideal}$ and $T_{sequential}$ decreases as the tile size increases. This is because the term for the computation cycles $C_comp$ scales with the area of the tile $t_w\times\t_h$ while the communication term $C_comm$ only scales with the length of the border $t_w+t_h$ making in less significant for larger tiles.
 
-As shown in \autoref{fig:pe_overhead_non_tiled}, the performance of the non-tiled algorithm scales almost perfectly, with the cycle count remaining constant with minimal fluctuations regardless of the grid size. The one exception is the 3x3 grid, which is significantly faster. We hypothesize this is an artifact of the experimental setup where only the single, inner \ac{pe} is performing computation and does not need to synchronize with other computing neighbors, effectively eliminating the communication latency discussed in \autoref{sec:theoretical_performance_evaluation_and_comparison_against_roofline_model}. For all subsequent experiments, we ensure at least \numproduct{5 x 5} active \acp{pe} - which results in at least \numproduct{3 x 3} \acp{pe} inner \acp{pe} - to provide representative results.
-
-Jacquelin et al. \cite{jacquelin2022massively} show that for a 3d stencil that is tested on real hardware, the cycle count scales almost perfectly with the number of \acp{pe} up to the whole \ac{wse} dimensions.
-We therefore expect that our implementation also scales nearly perfectly on the real hardware and calculate with this assumption in the following experiments.
-
-\section{Maximum tiling size}
-The maximum tiling size that fits into the memory of a \ac{pe} is limited by the number of memory banks and the size of the data structure registers.
-We test this by increasing the tile size to the maximum that still compiles for (test wse2 and wse3 independently!!! currently same number for both (smaller one))
-
-We find that the maximum tiling size  is 64x64=4096 elements.
-A non-quadratical tile size, that results in 4096 elements, is likely also possible, but not tested.
-Tile size of 64x64 was tested up to radius 3. It is likely to decrease for larger radius.
-
-This results in a maximum grid size containing \num{3101280000} elements on wse-2 and \num{3670474752} elements on wse-3.
-Note that due to hardware limitations of the \ac{wse}, the maximum stride for \acp{dsd} is \num{127} which makes very uneven distributions between tile width and tile height not possible.
+Our implementation gets for large tile sizes relatively close to the possible throughput modeled by $T_{ideal}$ and $T_{sequential}$ with up to 87.3\% or 89.7\% respectively, whereas it is below 10\% for small tile sizes. This can be explained by constant overhead per iteration that emerges from loading \acp{dsd} into \acp{dsr}, activating tasks and communication latency.
 
 
-\section{Comparison of non-tiled and tiled algorithm}
+More interesting are the gaps between our implementation and $T_{sequential}$ even for large tile sizes. These must be attributed to factors that scale with $C_{comp}$. For the $r1-optimized$ implementation the gap is significantly larger, with our implementation reaching only 75\% of the $T_{sequential}$ model. We assume this is the case because the implementation mainly uses \texttt{@fadds} instructions that support a \ac{simd} width of four, which is never reached by our implementation. The general tiled implementation on the other hand uses only \texttt{@fmacs} and \texttt{@fmuls} instructions that have a \ac{simd} width of one, which our implementation mostly does reach.
 
-The non-tiled algorithm is implemented in a completely different way than the tiled algorithm.
-This allows for a very optimized implementation, that doesn't require any runtime \ac{dsd} to \ac{dsr} transfers, asynchronous operations and task activation.
-It is therefore significantly faster than the tiled algorithm for radius 1.
-However, the non-tiled algorithm is naturally limited to a radius of 1 and a grid size not larger than the \ac{wse} dimensions.
+There is relatively high jitter in the throughput for radius 2. We don't know why this is the case, but speculate that bank conflicts might occur for certain buffer sizes, limiting the \texttt{@fmacs} and \texttt{@fmuls} to less than one per cycle.
 
+The largest tile size we could test is \numproduct{64 x 64} cells with a radius of up to three, resulting in a theoretically possible problem size containing up to \num{3.6e9} elements on the \ac{wse}-3. The limiting factor is the available memory per \ac{pe} of \qty{48}{\kilo\byte}. Increasing the radius does reduce the maximum possible tile size as the halo regions, needed to store the values from the neighboring \ac{pe} also get larger.
+
+
+
+\section{Comperative Performance Analysis}
+Comparing our implementation against implementations optimized for traditional \ac{hpc} architectures lets us assess for what parameters it is most benefitial. We also compare our specialized single cell implementation to the tiled implementation.  
+
+\subsection{Specialized vs. General-Purpose Kernel}
+The single-cell implementation is a heavily optimized implementation for the special case of only one element per \ac{pe}. It is useful for situations where the problem size is smaller than the physical dimensions of the \ac{wse}. In contrast to the tiled implementation, it doesn't require any runtime \ac{dsd} to \ac{dsr} transfers, asynchronous communication or multiple tasks. These aspects cause most of the overhead in the tiled implementation. Furthermore it does implement overlap between communication and computation which makes it significantly faster than the r1 optimized version of the tiled implementation.
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.5\linewidth]{algo_comparison.png}
@@ -116,9 +116,7 @@ However, the non-tiled algorithm is naturally limited to a radius of 1 and a gri
 \end{figure}
 
 \section{Comparison of Cerebras and traditional \ac{hpc}-Arcitectures}
-We conducted two more experiments to compare the performance of the implemented stencil on the Cerebras \ac{wse} with highly optimized Devito implementations for \ac{cpu} and \ac{gpu}. We used the same symmetric, constant coefficients for the \ac{wse} and the \ac{cpu} and \ac{gpu} implementations. The experiments were conducted in the Vast.ai cloud.
-For the \ac{cpu} experiments we used a system with two AMD EPYC 9554 64-Core processors. The system has a total of \qty{128}{\mega\byte} of L2 cache and \qty{512}{\mega\byte} of L3 cache. It is equipped with \qty{1511}{\giga\byte} of DDR5 memory.
-The system is furthermore equipped with a NVIDIA H100 SXM 80GB, which was used for the \ac{gpu} experiments. The system had CUDA 12.8 installed and we used python 3.12.11, Devito 4.8.19, Cupy 13.4.1 and the nvc compiler in version 25.5.
+We conducted two more experiments to compare the performance of the implemented stencil on the Cerebras \ac{wse} with highly optimized Devito implementations for \ac{cpu} and \ac{gpu}. 
 
 For each benchmark we fixed the total work load, i.e., $width\times height\times N$, so that every configuration performs the same number of stencil updates while varying only the memory footprint. Steady-state performance was obtained by first running an untimed warm-up of $N$ iterations (triggering JIT compilation, allocations and data transfers) and then timing a second run of the same $N$ iterations with all data already resident on the \ac{cpu} or \ac{gpu}. This was done for grids with a total size of $10^x$ for $x \in \{4..9\}$ and radii in \numrange{1}{6}.
 The compute work, while in this experiment constant for different grid sizes, rises linearly with the radius, which on the other hand has no significant effect on memory footprint.
@@ -161,7 +159,7 @@ For example, to map the \numproduct{10e3 x 10e4} grid onto the \ac{wse}-3 with i
 The results, shown in \autoref{fig:gpu_cpu_constant_product}, show that the \ac{cpu}'s throughput is very insensitive to the work allocation and differs only by a factor of \num{2.3} between its most efficient grid size of \num{1e6} and its least efficient grid size of \num{1e8} at a radius of 1. For the largest tested radius of \num{6} this effect is even smaller at a factor of \num{1.2}.
 
 The \ac{cpu}s insensitivity to the work allocation suggests that it is compute limited.
-This gets confirmed by the fact that the \ac{cpu} throughput scales almost inversely with the radius. For the \ac{cpu} and its optimal grid size of $\num{1e6}$, the throughput for the radius-1 stencil is \num{6.2} times higher than for the radius-6 stencil, which is \num{6} times as computationally expensive.
+This gets confirmed by the fact that the \ac{cpu} throughput scales almost inversely with the radius. For the \ac{cpu} and its optimal grid size of $\num{1e6}$, the throughput for the radius-1 stencil is \num{6.2} times higher than for the radius-6 stencil, which is \num{6} times as computationally expensive. This proves the system's vast cache and the optimizations techniques applied by Devito very effective.
 
 Furthermore we observe that \ac{gpu} performance differs significantly depending on work allocation, with a peak throughput of \qty{131.4}{Gcells/s} for the optimal grid size of $\num{1e7}$ and a 128x lower throughput for the least efficient grid size of $\num{1e4}$. Interstingly a very large grid size of $\num{1e9}$ also results in a 9.7x lower throughput than the optimal grid size. While looking for a possible explanation for the pronounced optimum at a grid size of \num{1e7}, we find that the required memory of $\num{1e7}\times\qty{4}{\byte}=\qty{40}{\mega\byte}$ fits perfectly into \qty{50}{\mega\byte} L2 cache of the H100.
 Other than the \ac{cpu}, the \ac{gpu} is very insensitive to the radius. So much that all differences in performance for different radii are more likely attributed to measurement errors than to a real difference in the runtime.
@@ -171,11 +169,11 @@ The results show that for most tested configurations, the \ac{gpu} achieves high
 However for very small grid sizes of \numproduct{100 x 100}, the \ac{cpu} is more efficient.
 
 The \ac{wse}-3 is very sensitive to both the work allocation and the radius. The sensitivity to radius is significant accross all grid sizes with a factor of \num{12.0} between radius \num{1} and \num{6} for a grid of \num{1e4} and factor of \num{8.1} between radius \num{1} and \num{6} for a grid of \num{1e9}.
-The more than linear scaling for small grid sizes can be explained by the fact that these problems use a tile size of \numproduct{1 x 1} for radius \num{1} and \numproduct{6 x 6} for radius \num{6} which results in $r^2(10r-1)$ flops per \ac{pe}. This number rises with the cube of $r$. The 12x now appears relatively low and is caused by communication also playing a major role in the overall time for these small grid sizes. For a grid size of \num{1e9} on the other hand, the tile size is constant for all radii and the scaling is closer to linear with an outlier for radius \num{1}, because this uses the $r1$ optimized tiled algorithm. The factor between radius \num{2} and \num{6} is \num{2.6}.
+The more than linear scaling for small grid sizes can be explained by the fact that these problems use a tile size of \numproduct{1 x 1} for radius \num{1} and \numproduct{6 x 6} for radius \num{6} which results in $r^2(8r+1)$ flops per \ac{pe}. This number rises with the cube of $r$. The 12x now appears relatively low and is caused by communication also playing a major role in the overall time for these small grid sizes. For a grid size of \num{1e9} on the other hand, the tile size is constant for all radii and the scaling is closer to linear with an outlier for radius \num{1}, because this uses the $r1$ optimized tiled algorithm. The factor between radius \num{2} and \num{6} is \num{2.6}.
 
 Analyzing the \ac{wse}-3s performance, we find that the iterations per second is constant for grids of size \numrange{1e4}{1e6}. This leads to higher Gcells/s throughput for larger grid sizes in this range. This is because grid sizes smaller than \num{1e6} do not use the whole \ac{wse} dimensions and the scaling to more \acp{pe} comes without performance degradation. Grid sizes from \num{1e6} to \num{1e8} use the whole \ac{wse} and show slower iteration times as the grid size increases, but sublinear. For radius \num{1} the slowdown of time per iteration between grid sizes of \num{1e6} and \num{1e7} is only \num{1.5} and from \num{1e7} to \num{1e8} only \num{2.8}. However, starting from \num{1e8} the slowdown is almost linear with a factor of \num{7.8} between \num{1e8} and \num{1e9} for radius \num{1} and \num{9.8} for radius \num{2}. We assume this is because constant overheads are getting less significant relative to the computation at these grid sizes.
 
-The \ac{wse}-3 implementation outperforms the \ac{cpu} and \ac{gpu} for all tested grid sizes and radii with the most significant increase in throughput for the largest grid size of \num{1e9} and radius \num{1} with a factor of \num{15000} compared to the \ac{gpu} and \num{61000} compared to the \ac{cpu}. For these parameters our implementation reaches a throughput of \qty{207}{\tera cells/s}. Because the throughput for the stencil is independent from the radius on the \ac{gpu}, but not on the \ac{wse}-3, the performance increase from \ac{wse}-3 to \ac{gpu} for the same grid size of \num{1e9} and radius \num{6} is significantly smaller at \num{2000}.
+The \ac{wse}-3 implementation outperforms the \ac{cpu} and \ac{gpu} for all tested grid sizes and radii with the most significant increase in throughput for the largest grid size of \num{1e9} and radius \num{1} with a factor of \num{12000} compared to the \ac{gpu} and \num{48000} compared to the \ac{cpu}. For these parameters our implementation reaches a throughput of \qty{165}{\tera cells/s}. Because the throughput for the stencil is independent from the radius on the \ac{gpu}, but not on the \ac{wse}-3, the performance increase from \ac{wse}-3 to \ac{gpu} for the same grid size of \num{1e9} and radius \num{6} is significantly smaller at \num{1500}.
 
 
 % As a second experiment, we compared our implementation for a grid size of the \ac{gpu}-optimal $\num{1e7}$ to the optimized \ac{gpu} and \ac{cpu} implementation. To fit a size of $\num{1e3}\times\num{1e4}$ on the \ac{wse}-2 with dimensions of $750\times994$, we need a tile size of at least $2x11$ and on \ac{wse}-3 with dimensions of $762\times1176$ a tile size of at least $14x1$. As shown in the earlier experiments, degrade larger tile sizes always the performance so we used these minimum tile sizes. Because of the radius constraint from \autoref{eq:radius_constraint}, we need to increase the shorter dimension of the tile to the respective radius.

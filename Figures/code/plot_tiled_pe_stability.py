@@ -1,3 +1,19 @@
+#               WSE2_min  WSE2_max  WSE3_min  WSE3_max  WSE2_fluctuation  \
+#  Radius Tile                                                             
+#  2      5x5        585       599       635       635          2.393162   
+#  1      1x1        125       127       155       157          1.600000   
+#  7      7x7       2769      2804      2783      2793          1.263994   
+#  1      5x5        283       286       191       191          1.060071   
+#  3      5x5        838       846       886       886          0.954654   
+ 
+#               WSE3_fluctuation  
+#  Radius Tile                    
+#  2      5x5           0.000000  
+#  1      1x1           1.290323  
+#  7      7x7           0.359324  
+#  1      5x5           0.000000  
+#  3      5x5           0.000000  )
+
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.lines import Line2D
