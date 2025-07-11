@@ -27,8 +27,8 @@ We separately analyze $C_{comp}$ for the r1-optimized and the general implementa
 \begin{equation}
     \begin{aligned}
         \label{eq:c_comp_r1}
-        C_{comp,r1} &= t_h t_w \left(\frac{4}{4} + \frac{2}{1}\right) \\[0.5ex]
-        &= t_h t_w \left(1 + 2\right) \\[0.5ex]
+        C_{comp,r1} &= t_h t_w \left(\frac{4}{4} + \frac{2}{1}\right) \\[1ex]
+        &= t_h t_w \left(1 + 2\right) \\[1ex]
         &= 3 t_h t_w
     \end{aligned}
 \end{equation}
@@ -38,7 +38,7 @@ The general implementation uses $4r$ \texttt{@fmacs} and one \texttt{@fmuls} ins
 \begin{equation}
     \label{eq:c_comp_general}
     \begin{aligned}
-        C_{comp,general} &= t_h t_w \left(\frac{4r}{1} + \frac{1}{1}\right) \\[0.5ex]
+        C_{comp,general} &= t_h t_w \left(\frac{4r}{1} + \frac{1}{1}\right) \\[1ex]
         &= t_h t_w \left(4r + 1\right)
     \end{aligned}
 \end{equation}
@@ -49,8 +49,8 @@ The communication time $C_{comm}$ is defined by the number of elements that each
 \begin{equation}
     \label{eq:c_comm}
     \begin{aligned}
-        C_{comm} &= C_{send} + C_{recv} \\[0.5ex]
-        C_{comm} &= 2\left(2 r t_w + 2 r t_h\right) \\[0.5ex]
+        C_{comm} &= C_{send} + C_{recv} \\[1ex]
+        C_{comm} &= 2\left(2 r t_w + 2 r t_h\right) \\[1ex]
         &= 4r\left(t_w+t_h\right)
     \end{aligned}
 \end{equation}
@@ -60,7 +60,7 @@ Putting it all together, we can use the cycle count, tile size and clock frequen
 \begin{equation}
     \label{eq:throughput_ideal}
     \begin{aligned}
-        T_{ideal} &= \frac{P_h P_w f_{clk} t_w t_h}{C_{ideal}} \\[0.5ex]
+        T_{ideal} &= \frac{P_h P_w f_{clk} t_w t_h}{C_{ideal}} \\[1ex]
         &= \frac{P_h P_w f_{clk} t_w t_h}{max\left(C_{comp}, C_{comm}\right)}
     \end{aligned}
 \end{equation}
@@ -70,8 +70,8 @@ Analyzing the term $max\left(C_{comp}, C_{comm}\right)$, we find that for all ca
 \begin{equation}
     \label{eq:throughput_ideal_simplified}
     \begin{aligned}
-        T_{ideal} &= \frac{P_h P_w f_{clk} t_w t_h}{C_{comp,general}} \\[0.5ex]
-        &= \frac{P_h P_w f_{clk} t_w t_h}{t_h t_w \left(4r + 1\right)} \\[0.5ex]
+        T_{ideal} &= \frac{P_h P_w f_{clk} t_w t_h}{C_{comp,general}} \\[1ex]
+        &= \frac{P_h P_w f_{clk} t_w t_h}{t_h t_w \left(4r + 1\right)} \\[1ex]
         &= \frac{P_h P_w f_{clk}}{4r + 1}
     \end{aligned}
 \end{equation}
@@ -82,8 +82,8 @@ The throughput for the sequential model and the general implementation is given 
 \begin{equation}
     \label{eq:throughput_sequential}
     \begin{aligned}
-        T_{sequential} &= \frac{P_h P_w f_{clk} t_w t_h}{C_{sequential}} \\[0.5ex]
-        &= \frac{P_h P_w f_{clk} t_w t_h}{C_{comp,general} + C_{comm}} \\[0.5ex]
+        T_{sequential} &= \frac{P_h P_w f_{clk} t_w t_h}{C_{sequential}} \\[1ex]
+        &= \frac{P_h P_w f_{clk} t_w t_h}{C_{comp,general} + C_{comm}} \\[1ex]
         &= \frac{P_h P_w f_{clk} t_w t_h}{t_h t_w \left(4r + 1\right) + 4r\left(t_w+t_h\right)}
     \end{aligned}
 \end{equation}
