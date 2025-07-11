@@ -24,13 +24,13 @@ Unsere Implementierungen erreichen eine bemerkenswerte Leistung von bis zu 165 T
 %------------------------------
 \begin{otherlanguage}{english}
 \section*{Abstract}
-Stencil computations are fundamental to various disciplines including climate modeling, fluid dynamics and material science.
+Stencil computations are fundamental to various disciplines, including climate modeling, fluid dynamics, and material science.
 However, their low arithmetic intensity makes their efficient implementation on traditional hardware notoriously difficult.
 
-The Cerebras \acf{wse} is a novel hardware architecture, featuring almost one million cores on a single chip. Its potential for highly efficient stencil implementations has already been demonstrated in the context of 3D stencils, typically by mapping the z-dimension to the memory within each core. Yet, efficient implementations for 2D stencils remain an open challenge.
+The Cerebras \acf{wse} is a novel hardware architecture featuring almost one million cores on a single chip. Its potential for highly efficient stencil implementations has already been demonstrated in the context of 3D stencils, typically by mapping the z-dimension to the memory within each core. Yet, efficient implementations for 2D stencils remain an open challenge.
 
-This work presents and evaluates a novel implementation approach for 2D star-shaped stencils on Cerebras hardware. By tiling the problem domain and mapping these tiles to the individual cores, this approach significantly reduces the communication overhead, relative to the computational workload. We develop and evaluate two kernels: a high-throughput, tiled kernel for large problem domains and a specialized single-cell implementation for grids that fit entirely within the \ac{wse}'s physical dimensions.
+This work presents and evaluates a novel implementation approach for 2D star-shaped stencils on Cerebras hardware. By tiling the problem domain and mapping these tiles to the individual cores, this approach significantly reduces the communication overhead relative to the computational workload. We develop and evaluate two kernels: a high-throughput, tiled kernel for large problem domains and a specialized single-cell implementation for grids that fit entirely within the \ac{wse}'s physical dimensions.
 
-Our implementations achieve remarkable performance on a simulated \ac{wse}-3 of up to 165 Tera-cells/s, reach 41\% of \ac{wse}-3's peak floating-point performance for certain problem sizes, and outperform an optimized Devito implementation on an NVIDIA H100 \ac{gpu} by over four orders of magnitude. 
+Our implementations achieve remarkable performance on a simulated \ac{wse}-3 of up to 165 Tera-cells/s, reach 41\% of the \ac{wse}-3's peak floating-point performance for certain problem sizes, and outperform an optimized Devito implementation on an NVIDIA H100 \ac{gpu} by over four orders of magnitude. 
 \section*{Keywords:} \itshape \englishkeywords
 \end{otherlanguage}
