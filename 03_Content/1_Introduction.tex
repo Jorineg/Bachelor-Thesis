@@ -3,7 +3,7 @@
 \chapter{Introduction}
 % Der job der Einleitung: die contributions verstehen.
 % muss nicht mehr als 2 oder 3 seiten sein.
-Stencil computations form the computational heart of scientific simulations across disciplines, from modeling heat dissipation in semiconductor chips to simulating complex seismic waves.
+Stencil computations form the computational heart of many scientific simulations across disciplines, from modeling heat dissipation in semiconductor chips to simulating complex seismic waves.
 They have in common that a grid of numbers is iteratively updated by applying a local function.
 The low arithmetic intensity makes these types of problems difficult to run efficiently on traditional hardware.
 Optimizing it typically involves tiling the problem at different levels to utilize the cache hierarchy effectively.
@@ -11,9 +11,10 @@ A special challenge represent high-order stencils as their update relies on cell
 
 Cerebras developed the \ac{wse}, a new kind of hardware that consists of almost a million cores, all residing on a single chip.
 All cores have their own, local memory and are connected via a 2D fabric mesh, connecting every core with its four direct neighbors.
+This architecture is particularly well-suited for stencil computations because it eliminates the memory bandwidth bottleneck that typically limits stencil performance on traditional hardware, while the regular 2D mesh topology naturally matches the communication patterns of stencil operations.
 In October 2021, Cerebras released Version 0.2.0 of their SDK, allowing the general public to implement custom kernels for the \ac{wse} using their own language \ac{csl}. 
-This made the \ac{wse} an interesting target for stencil codes and has been used to dramatically accelerate different 3D stencil applications using 7- or 25-point stencils for solving the heat equation or 3D wave equation \cite{jacquelin2022scalable,rocki2020fast,woo2022disruptive,sai2024matrix}.
-All of these approaches map x and y dimension to the x and y dimension of the \ac{wse}, while mapping the z dimension to the memory within each core.
+This made the \ac{wse} an accessible target for stencil codes and has been used to dramatically accelerate different 3D stencil applications using 7- or 25-point stencils for solving the heat equation or 3D wave equation \cite{jacquelin2022scalable,rocki2020fast,woo2022disruptive,sai2024matrix}.
+All of these approaches map x and y dimensions to the x and y dimensions of the \ac{wse}, while mapping the z dimension to the memory within each core.
 
 2D stencils have only been attempted once and without using \ac{csl}. Instead, convolutional filters in TensorFlow were used to define stencils that could run on the \ac{wse} \cite{brown2022tensorflow}. In this work, it was shown that, although utilizing the \ac{wse} in a suboptimal setting, it could outperform four Nvidia V100s by a factor of 2.5. While 3D stencil implementations could also be used for solving 2D stencil problems by setting one of the dimensions to one, this is a very inefficient way of using the \ac{wse}.
 
@@ -24,7 +25,7 @@ Unlike the existing 3D implementations, where high-order stencils always come wi
 
 The main contributions of this thesis are:
 \begin{itemize}
-    \item Two different implementations for linear two-dimensional star-shaped stencils on the Cerebras \ac{wse}, a single cell implementation optimized for latency, and a tiled implementation optimized for throughput and larger grid sizes (\autoref{sec:implementation})
+    \item Two different implementations for linear two-dimensional star-shaped stencils on the Cerebras \ac{wse}, a single-cell implementation optimized for latency, and a tiled implementation optimized for throughput and larger grid sizes (\autoref{sec:implementation})
     \item A simplified performance model for the implemented stencil operators on the \ac{wse}, accounting for key architectural features (\autoref{sec:theory_performance})
     \item A performance evaluation investigating the effects of different tile sizes and radii for the Cerebras \ac{wse}-2 and \ac{wse}-3 architectures, and a comparison to optimized code, generated from the high-level stencil \ac{dsl} Devito targeting AMD Epyc \ac{cpu} and Nvidia H100 \ac{gpu} (\autoref{sec:experiments})
 \end{itemize}

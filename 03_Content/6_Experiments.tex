@@ -5,10 +5,10 @@ We ran several experiments to evaluate the performance characteristics of the im
 \section{Methodology}
 All experiments for the Cerebras WSE were conducted using the cycle-accurate simulator provided in the Cerebras SDK (v1.3.0).
 Due to the significant computational resources required, simulations were limited to a smaller number of PEs (up to 50x50) and iterations than would be used on physical hardware.
-In order to evaluate the performance our implementation could achieve on a full system, we extrapolated our results to larger numbers of \acp{pe} and iterations.
+In order to estimate the performance our implementation could achieve on a full system, we extrapolated our results to larger numbers of \acp{pe} and iterations.
 We extrapolate to more \acp{pe} by assuming perfect weak scaling, meaning that the cycle count doesn't increase if more \acp{pe} are used when keeping the workload per \ac{pe} constant.
 This assumption is supported by two key pieces of evidence: The results from \citeauthor{jacquelin2022scalable} \cite{jacquelin2022scalable} who achieve near-perfect weak scaling for their implementation of a 3d stencil on a \ac{wse}-2 system.
-Furthermore, we run our own weak scaling experiments on the simulator and find that the cycle count is almost constant for the tested number of \acp{pe} \autoref{sec:weak_scaling}.
+Furthermore, we run our own weak scaling experiments on the simulator and find that the cycle count is almost constant when increasing the number of \acp{pe} \autoref{sec:weak_scaling}.
 
 We measure the runtime of our implementations by calculating it from the recorded number of clock cycles used per iteration and the clock speed of the \ac{wse}. This is the standard methodology for recording performance data on Cerebras hardware \cite{jacquelin2022scalable}.
 Specifically, we ran every experiment for four iterations and took the average cycle count of the third and fourth iteration as we found the cycle count could be slightly inaccurate in the first two iterations \autoref{sec:stability_of_cycle_count_per_iteration}.
@@ -44,12 +44,12 @@ This can be confirmed by the results of this experiment in the simulator with up
 
 As shown in \autoref{fig:pe_overhead_non_tiled}, the performance of the single-cell implementation scales almost proportionally, with the cycle count remaining constant with minimal fluctuations regardless of the grid size. The one exception is the \numproduct{3 x 3} grid, which is significantly faster. We hypothesize this is an artifact of the experimental setup where only the single, inner \ac{pe} is performing computation and does not need to synchronize with other computing neighbors, effectively eliminating any communication latency.
 The tiled implementation doesn't show this behavior and fluctuates by not more than about 1.3\% on the \ac{wse}-3 across all tested grid sizes.
-For all subsequent experiments, we ensure at least \numproduct{5 x 5} active \acp{pe}, which results in at least \numproduct{3 x 3} \acp{pe} inner \acp{pe}, to avoid possible effects as observed for the single cell implementation with a \numproduct{3 x 3} grid. 
+For all subsequent experiments, we ensure at least \numproduct{5 x 5} active \acp{pe}, which results in at least \numproduct{3 x 3} \acp{pe} inner \acp{pe}, to avoid possible effects as observed for the single-cell implementation with a \numproduct{3 x 3} grid. 
 
 \subsection{Iteration Stability}
 \label{sec:stability_of_cycle_count_per_iteration}
 For this experiment, we fix the grid size, tile size and radius and run the simulation for different numbers of iterations to test if the cycle count per iteration remains stable, which this experiment shows to be the case after two iterations of varying cycle count.
-% For our single cell implementaion and a grid size of \numproduct{10 x 10}, the cycle count per iteration is $16\pm1$ on \ac{wse}-2 and $23\pm1$ on \ac{wse}-3.
+% For our single-cell implementaion and a grid size of \numproduct{10 x 10}, the cycle count per iteration is $16\pm1$ on \ac{wse}-2 and $23\pm1$ on \ac{wse}-3.
 % For a grid of \numproduct{10 x 10}, a tile size of \numproduct{1 x 1} and radius 1, the tiled algorithm achieves $127\pm0$ cycles per iteration on \ac{wse}-2 and $156\pm1$ cycles per iteration on \ac{wse}-3.
 % A larger problem size with a grid of 100x100, tile size of 10x10 and radius 5, results in a cycle count per iteration of $3353\pm20$ on \ac{wse}-2 and $3377\pm5$ on \ac{wse}-3.
 Because of the higher fluctuations in cycle count in the first two iterations, we measure the cycle count in the following experiments as an average of the 3rd and 4th iteration.
@@ -99,7 +99,7 @@ The largest tile size we could test is \numproduct{64 x 64} cells with a radius 
 Comparing our implementation against implementations optimized for traditional \ac{hpc} architectures lets us assess for what parameters it is most beneficial. We also compare our specialized single-cell implementation to the tiled implementation.  
 
 \subsection{Specialized vs. General Kernel}
-The single-cell implementation is a heavily optimized implementation for the special case of only one element per \ac{pe}. It is useful for situations where the problem size is smaller than the physical dimensions of the \ac{wse}. In contrast to the tiled implementation, it doesn't require any runtime \ac{dsd} to \ac{dsr} transfers, asynchronous communication or multiple tasks. These aspects cause most of the overhead in the tiled implementation. Furthermore it does implement overlap between communication and computation which makes it significantly faster than the r1 optimized version of the tiled implementation, specifically achieving a 8x improvement in throughput on \ac{wse}-2 and a 7x improvement on \ac{wse}-3.
+The single-cell implementation is a heavily optimized implementation for the special case of only one element per \ac{pe}. It is useful for situations where the problem size is smaller than the physical dimensions of the \ac{wse}. In contrast to the tiled implementation, it doesn't require any runtime \ac{dsd} to \ac{dsr} transfers, asynchronous communication or multiple tasks. These aspects cause most of the overhead in the tiled implementation. Furthermore it does implement overlap between communication and computation which makes it significantly faster than the r1-optimized version of the tiled implementation, specifically achieving a 8x improvement in throughput on \ac{wse}-2 and a 7x improvement on \ac{wse}-3.
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.7\linewidth]{algo_comparison.png}
@@ -124,12 +124,12 @@ In all experiments, we strictly used powers of 10 for the grid dimensions, somet
     t_w = \left\lceil \frac{G_w}{P_w} \right\rceil, \quad t_h = \left\lceil \frac{G_h}{P_h} \right\rceil
 \end{equation}
 
-To map a rectangular grid of \numproduct{10e3 x 10e4} elements onto the \ac{wse}-3 with its dimensions of \numproduct{762 x 1176} \acp{pe}, we can calculate the tile size in two possible ways. Mapping the grid's width to the \ac{wse}'s width results in a tile width of $\left\lceil \frac{1000}{762} \right\rceil = 2$ and a tile height of $\left\lceil \frac{10000}{1176} \right\rceil = 9$. However, mapping the grid's width to the \ac{wse}'s height is more efficient, yielding a tile width of $\left\lceil \frac{1000}{1176} \right\rceil = 1$ and a tile height of $\left\lceil \frac{10000}{762} \right\rceil = 14$. To minimize the total tile area and therefore the per-\ac{pe} workload, we always chose the smaller configuration of $1 \times 14$. It is important to note that due to the radius constraint from \autoref{eq:radius_constraint}, the shorter dimension of the tile must be at least as large as the radius, so the effective tile size was adjusted accordingly if necessary.
+To map a rectangular grid of \numproduct{10^3 x 10^4} elements onto the \ac{wse}-3 with its dimensions of \numproduct{762 x 1176} \acp{pe}, we can calculate the tile size in two possible ways. Mapping the grid's width to the \ac{wse}'s width results in a tile width of $\left\lceil \frac{1000}{762} \right\rceil = 2$ and a tile height of $\left\lceil \frac{10000}{1176} \right\rceil = 9$. However, mapping the grid's width to the \ac{wse}'s height is more efficient, yielding a tile width of $\left\lceil \frac{1000}{1176} \right\rceil = 1$ and a tile height of $\left\lceil \frac{10000}{762} \right\rceil = 14$. To minimize the total tile area and therefore the per-\ac{pe} workload, we always chose the smaller configuration of $1 \times 14$. It is important to note that due to the radius constraint from \autoref{eq:radius_constraint}, the shorter dimension of the tile must be at least as large as the radius, so the effective tile size was adjusted accordingly if necessary.
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=1\linewidth]{gpu_cpu_wse3_constant_product_gcells.png}
-    \caption{Comparison of \ac{cpu}, \ac{gpu} and \ac{wse}-3 performance in Giga-cells per second (Gcells/s) for different grid sizes and radii.}
+    \caption{Comparison of \ac{cpu}, \ac{gpu} and \ac{wse}-3 performance in Giga-cells per second (Gcells/s) for different grid sizes and radii}
     \label{fig:gpu_cpu_constant_product}
 \end{figure}
 
@@ -158,7 +158,7 @@ Nonetheless how close an algorithm is to specific hardware peak performance is a
 
 The achieved computational efficiency can be calculated from the cycle counts measured in the earlier experiments, the total number of \acp{flop} executed in these experiments and the maximum number of \acp{flop} that can be executed per cycle and \ac{pe} on the \ac{wse}.
 
-As described in \autoref{sec:implementation}, the single-cell implementation and the r1-optimized implementation have \num{6} \acp{flop} per cell, iteration and \ac{pe} while the general tiled implementation has $8r+1$ \acp{flop} per cell, iteration and \ac{pe}. From the tile sizes used in the different experiments, we first calculate the total number of \acp{flop} ($F_{total}$) per iteration and \ac{pe} as:
+As described in \autoref{sec:implementation}, the single-cell implementation and the r1-optimized implementation performs \num{6} \acp{flop} per cell, iteration and \ac{pe} while the general tiled implementation performs $8r+1$ \acp{flop} per cell, iteration and \ac{pe}. From the tile sizes used in the different experiments, we first calculate the total number of \acp{flop} ($F_{total}$) per iteration and \ac{pe} as:
 \begin{equation}
     F_{total} = t_w t_h (8r+1)
 \end{equation}
@@ -167,7 +167,7 @@ and then divide by the measured cycle count $C_{measured}$ per iteration to get 
     F_{avg} = \frac{F_{total}}{C_{measured}}
 \end{equation}
 
-We find that the maximum number of FP32 operations per cycle and \ac{pe} ($F_{max}$) can be obtained with \texttt{@fadds} instructions, which support a \ac{simd} width of 2 in \ac{wse}-2 and 4 in \ac{wse}-3 (\texttt{@fmacs} is not supported in \ac{simd} mode). Using the calculated average number of \acp{flop} per cycle and \ac{pe} $F_{avg}$ and the maximum number of \acp{flop} per cycle and \ac{pe} $F_{max}$, we calculate the percentage of the peak performance $E_{avg}$ as:
+We find that the maximum number of theoretically possible FP32 operations per cycle and \ac{pe} ($F_{max}$) can be obtained with \texttt{@fadds} instructions, which support a \ac{simd} width of 2 in \ac{wse}-2 and 4 in \ac{wse}-3 (\texttt{@fmacs} is not supported in \ac{simd} mode). Using the calculated average number of \acp{flop} per cycle and \ac{pe} $F_{avg}$ and the maximum number of \acp{flop} per cycle and \ac{pe} $F_{max}$, we calculate the theoretically possible percentage of the peak performance $E_{avg}$ as:
 \begin{equation}
     E_{avg} = \frac{F_{avg}}{F_{max}}
 \end{equation}
@@ -175,12 +175,18 @@ We find that the maximum number of FP32 operations per cycle and \ac{pe} ($F_{ma
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.7\linewidth]{percent_pflops.png}
-    \caption{Percentage of peak performance for different tile sizes and radii for \ac{wse}-2 and \ac{wse}-3.}
+    \caption{Extrapolated percentage of peak performance for different tile sizes and radii for \ac{wse}-2 and \ac{wse}-3}
     \label{fig:percent_pflops}
 \end{figure}
 
 For radius 2, and the maximum tile size of \numproduct{64 x 64} we reach \num{82}\% of the peak performance for \ac{wse}-2 and \num{41}\% for \ac{wse}-3.
-While these numbers are per \ac{pe}, they also hold for the entire system, if the problem size is large enough to use the whole \ac{wse} dimensions.
+These numbers are extrapolated from our small scale simulator experiments and assume perfect weak scaling across the entire \ac{wse} as already discussed. 
 In general, the achieved percentage of peak performance mostly increases with the tile size. There is no clear trend for the radius, except for radius 1, which is using the r1-optimized implementation and as discussed in \autoref{sec:theory_performance} farthest from the peak performance.
 
-In the optimal configuraion, our implementation reaches a sustained performance of 1.01 P\ac{flops} for \ac{wse}-2 and 1.29 P\ac{flops} for \ac{wse}-3.
+In the optimal configuraion, our implementation may reasonably be expected to reach a sustained performance of 1.01 P\ac{flops} for \ac{wse}-2 and 1.29 P\ac{flops} for \ac{wse}-3.
+
+
+\section{Conclusions}
+In this work, we demonstrated an efficient implementation for 2D star-shaped stencils targeting the \ac{wse}-2 and \ac{wse}-3 that uses tiling of the problem domain as core mechanism to increase computation workload relative to communication. We developed a simplified performance model which we used to analyze the scaling properties of the kernel. Furthermore, we validated the performance model with experiments on the cycle accurate simulator for the \ac{wse}.
+
+In a direct comparison with an NVIDIA H100 \ac{gpu} our implementation in the simulator for \ac{wse}-3 reached up to 12000x higher throughput and when targeting \ac{wse}-2 a predicted value of 82\% of theoretical FP32 peak performance. Our results prove the effectiveness of tiling and the \ac{wse}'s potential for 2D stencil problems.

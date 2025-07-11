@@ -10,7 +10,7 @@ For the simple case where $t_w=t_h=1$, this results in a radius of 1.
 
 Two main approaches were implemented:
 \begin{itemize}
-    \item A specialized, single cell implementation, that represents each element of the grid with one \ac{pe} and restricts the radius to one
+    \item A specialized, single-cell implementation, that represents each element of the grid with one \ac{pe} and restricts the radius to one
     \item A general, tiled implementation maps multiple elements of the underlying grid, i.e., a tile size of $t_w \times t_h$, to a single \ac{pe}, allowing for grid sizes that significantly exceed the \ac{wse} hardware dimensions and a radius greater than one as long as \autoref{eq:radius_constraint} is satisfied 
 \end{itemize}
 
@@ -18,7 +18,7 @@ A special case of the tiled implementation with a stencil radius of one has been
 
 Although the experiments throughout this thesis utilize symmetric, constant coefficients, the presented implementations offer different degrees of flexibility for more general stencil forms.
 
-The single cell implementation, as well as the r1-optimized tiled version, leverage optimizations that rely on symmetric coefficients. This restriction enables significant performance gains for this specific use case. In contrast, the general tiled implementation could handle asymmetric coefficients with minimal modifications without increasing the number of computational cycles.
+The single-cell implementation, as well as the r1-optimized tiled version, leverage optimizations that rely on symmetric coefficients. This restriction enables significant performance gains for this specific use case. In contrast, the general tiled implementation could handle asymmetric coefficients with minimal modifications without increasing the number of computational cycles.
 
 Spatially varying coefficients are fully supported by both the tiled and r1-optimized implementations, as each \ac{pe} receives its own set of coefficients from the host. While this capability has not been empirically tested, it requires no modification to the existing kernel. The single-cell implementation currently uses fixed weights but could support variable coefficients with a minor change, without incurring any runtime overhead.
 
@@ -27,7 +27,7 @@ The tiled implementation consists of a top-level time-step loop comprising separ
 \begin{figure}
     \centering
     \includegraphics[width=0.5\linewidth]{implementations.png}
-    \caption{Schematic comparison of three implementations: single-cell, tiled and r1-optimized tiled.}
+    \caption{Schematic comparison of three implementations: single-cell, tiled and r1-optimized tiled}
     \label{fig:implementations}
 \end{figure}
 
@@ -58,8 +58,8 @@ and visualized in \autoref{fig:r1_stencil_coloring}.
 \subsection{\ac{pe} Program}
 The implementation for the single-cell implementation is relatively straightforward.
 Although only single elements are processed at a time, \acp{dsd} are needed for communication and for performance reasons explicit \ac{dsr} assignment is employed, decreasing the number of cycles per iteration significantly.  
-Further, the center multiplication is placed at the beginning of each iteration in a way that it overlaps with the communication delay and does not need an additional cycle.
-Because only one fp32 element is received from and sent to each neighbor, input and output queues never fill up completely and synchronous \ac{dsd} operations can be used instead of asynchronous operations that would add significant overhead.
+Furthermore, the center multiplication is placed at the beginning of each iteration in a way that it overlaps with the communication delay and does not need an additional cycle.
+Because only one 32 bit floating point number is received from and sent to each neighbor, input and output queues never fill up completely and synchronous \ac{dsd} operations can be used instead of asynchronous operations that would add significant overhead.
 Furthermore, the algorithm multiplies the value that is sent to the neighbors with the coefficient $w_1$ while sending, so that the receiving \acp{pe} only add these values to $w_0 \cdot v$ to get the new value.
 By computing the intermediate values $intermediate_1$ and $intermediate_2$ before adding them to $value$, the number of cycles for this part of the calculation is reduced from 10 to 7.
 
@@ -76,6 +76,7 @@ By computing the intermediate values $intermediate_1$ and $intermediate_2$ befor
 
 % use csl code instead of algorithm
 \begin{lstlisting}[language=CSL, caption={CSL code for the single-cell implementation}, label={lst:single_cell_implementation}]
+    @fmuls(matrix_dsr, matrix_dsr, weight_zero);
     if (@is_arch("wse2")){
         @fadds(intermediate_sum_1_dsr_dest, recv_dsr_east, recv_dsr_west);
         @fadds(intermediate_sum_2_dsr_dest, recv_dsr_north, recv_dsr_south);
@@ -124,11 +125,12 @@ Where $v$ is the old value of the element, $v_{north,i}, v_{east,i}, v_{south,i}
 \begin{figure}
     \centering
     \includegraphics[width=0.5\linewidth]{grid_visualization.png}
-    \caption{Data layout within two neighboring \acp{pe} for the tiled stencil with tile size $t_w=3, t_h=4$ and radius $r=2$. The light green area represents the \ac{pe}'s assigned grid tile. The surrounding light blue halo region stores data received from neighboring \acp{pe}, while the green and blue thick borders show the data regions exchanged between neighboring \acp{pe}.}
+    \caption{Data layout within two neighboring \acp{pe} for the tiled stencil with tile size $t_w=3, t_h=4$ and radius $r=2$. The light green area represents the \ac{pe}'s assigned grid tile. The surrounding light blue halo region stores data received from neighboring \acp{pe}, while the green and blue thick borders show the data regions exchanged between neighboring \acp{pe}}
     \label{fig:grid_visualization}
 \end{figure}
-The communication for the variable tile size requires one \ac{pe} to send different data to its neighbors. This is visualized in \autoref{fig:grid_visualization}. This requires four distinct colors for sending to the different neighbors as well as four colors to receive. For each of the four directions, a pair of colors is used and arranged in a checkerboard pattern across the \ac{pe} grid.
-If colors 0 and 1 are used for data transfer from west to east, following function can be used to determine what color is used to send and to receive:
+Communication with variable tile sizes requires each \ac{pe} to send different data to each of its neighbors. This is illustrated in \autoref{fig:grid_visualization}, with the corresponding \acp{dsd} shown in \autoref{lst:dsd_config}. Four distinct colors are used to represent the data sent to each neighbor, and four additional colors indicate the received data.
+For each of the four directions, a pair of colors is used and arranged in a checkerboard pattern across the \ac{pe} grid.
+If colors 0 and 1 are used for data transfer from west to east, the following function can be used to determine what color is used to send and to receive:
 \begin{equation}
     \label{eq:tiled_coloring_function}
     f_t(row, col)=(row+col) \bmod 2
@@ -147,7 +149,7 @@ Where $f_t$ determines the color used to send data east and $1-f_t$ is used to r
 \begin{figure}
     \centering
     \includegraphics[width=0.7\linewidth]{stencil_static.png}
-    \caption{Visualization of the computational steps for one iteration of the tiled implementation with radius $r=1$ and tile size $5\times 3$. Selected regions in the buffer are each multiplied with a weight and added to the accumulator.}
+    \caption{Visualization of the computational steps for one iteration of the tiled implementation with radius $r=1$ and tile size $5\times 3$. Selected regions in the buffer are each multiplied with a weight and added to the accumulator}
     \label{fig:stencil_algorithm_animation}
 \end{figure}
 
@@ -190,30 +192,56 @@ A \ac{dsd} is used to select the center region of the buffer. This \ac{dsd} is s
 
 If only \texttt{@fmacs} instructions were used, the accumulator would have to be reset to zero after each iteration. To avoid this, a \texttt{@fmuls} instruction is used for the very first operation that writes to the accumulator to overwrite the values of the previous iteration.
 
-\begin{algorithm}[tbh]
-    \SetAlgoLined
-    \KwData{Buffer with halo regions filled}
-    \KwResult{Updated buffer center}
-    \For{$i \gets 1$ \KwTo $r$}{
-        \eIf{$i == 1$}{
-            $accumulator \gets weights[i] \cdot buffer\_center\_dsd_{UP,i}$\;
-        }{
-            $accumulator \gets accumulator + weights[i] \cdot buffer\_center\_dsd_{UP,i}$\;
-        }
-        $accumulator \gets accumulator + weights[i] \cdot buffer\_center\_dsd_{DOWN,i}$\;
-        $accumulator \gets accumulator + weights[i] \cdot buffer\_center\_dsd_{LEFT,i}$\;
-        $accumulator \gets accumulator + weights[i] \cdot buffer\_center\_dsd_{RIGHT,i}$\;
-    }
-    $buffer\_center\_dsd \gets buffer\_center\_dsd + weights[0] \cdot accumulator$\;
-    \caption{Code excerpt for the tiled implementation}\label{alg:tiled_algorithm}
-\end{algorithm}
+% \begin{algorithm}[tbh]
+%     \SetAlgoLined
+%     \KwData{Buffer with halo regions filled}
+%     \KwResult{Updated buffer center}
+%     \For{$i \gets 1$ \KwTo $r$}{
+%         \eIf{$i == 1$}{
+%             $accumulator \gets weights[i] \cdot buffer\_center\_dsd_{UP,i}$\;
+%         }{
+%             $accumulator \gets accumulator + weights[i] \cdot buffer\_center\_dsd_{UP,i}$\;
+%         }
+%         $accumulator \gets accumulator + weights[i] \cdot buffer\_center\_dsd_{DOWN,i}$\;
+%         $accumulator \gets accumulator + weights[i] \cdot buffer\_center\_dsd_{LEFT,i}$\;
+%         $accumulator \gets accumulator + weights[i] \cdot buffer\_center\_dsd_{RIGHT,i}$\;
+%     }
+%     $buffer\_center\_dsd \gets buffer\_center\_dsd + weights[0] \cdot accumulator$\;
+%     \caption{Code excerpt for the tiled implementation}\label{alg:tiled_algorithm}
+% \end{algorithm}
 
-The static border is implemented by using a ring of \acp{pe} that only send and receive data from their neighbors and do not participate in the computation. If $r<t_w$ or $r<t_h$ the border \acp{pe} values are padded with zeros to fill their buffer. We refer to the \acp{pe} that only send and receive data from their neighbors as border \acp{pe}, the ones that participate in the computation as inner \acp{pe} and the set of both of these as active \acp{pe}.
+\begin{lstlisting}[language=CSL, caption={CSL code excerpt for the tiled implementation}, label={lst:tiled_implementation}]
+    inline for (@range(i16, 1, radius + 1, 1)) |i| {
+        var weight: f32 = weights[i];
+        var up_shift_dsd = @increment_dsd_offset(buffer_center_dsd, -i*(tile_width+2*radius+1), f32);
+        var down_shift_dsd = @increment_dsd_offset(buffer_center_dsd, i*(tile_width+2*radius+1), f32);
+        var left_shift_dsd = @increment_dsd_offset(buffer_center_dsd, -i, f32);
+        var right_shift_dsd = @increment_dsd_offset(buffer_center_dsd, i, f32);
+  
+        if(i==1){
+          // overwrite own_values in first iteration
+          @fmuls(own_values_dsd, up_shift_dsd, weight);
+        }else{
+          @fmacs(own_values_dsd, own_values_dsd, up_shift_dsd, weight);
+        }
+        @fmacs(own_values_dsd, own_values_dsd, down_shift_dsd, weight);
+        @fmacs(own_values_dsd, own_values_dsd, left_shift_dsd, weight);
+        @fmacs(own_values_dsd, own_values_dsd, right_shift_dsd, weight);
+      }
+      @fmacs(buffer_center_dsd, own_values_dsd, buffer_center_dsd, weights[0]);
+\end{lstlisting}
+
+
+
+
+
+
+The static border at the edge of the compute grid is implemented by using a ring of read-only \acp{pe} that only send data to their neighbors and do not participate in the computation. If $r<t_w$ or $r<t_h$ the border \acp{pe} values are padded with zeros to fill their buffer. We refer to the \acp{pe} that only send data to their neighbors as border \acp{pe}, the ones that participate in the computation as inner \acp{pe} and the set of both of these as active \acp{pe}.
 
 \begin{figure}
     \centering
     \includegraphics[width=0.7\linewidth]{pe_arrangement.png}
-    \caption{Visualization of the PE arrangement for the tiled implementation showing border and inner \acp{pe} as well as static, dynamic and zero-padded grid regions.}
+    \caption{Visualization of the PE arrangement for the tiled implementation showing border and inner \acp{pe} as well as static, dynamic and zero-padded grid regions}
     \label{fig:pe_arrangement}
 \end{figure}
 
@@ -260,7 +288,7 @@ For all experiments in this work, the r1-optimized version is used whenever appl
 
 \begin{table}[h]
     \centering
-    \caption{Operations for one grid point and iteration, r1 optimized tiled implementation}
+    \caption{Operations for one grid point and iteration, r1-optimized tiled implementation}
     \label{tab:tiled_operations_r1_optimized}
     \begin{tabular}{@{}cccc@{}}
         \toprule
