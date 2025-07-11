@@ -1,9 +1,3 @@
-# Summary Statistics:
-# WSE-3 Constants:
-#   Clock frequency: 0.9 GHz
-#   Physical dimensions: 762×1176 PEs
-#   Total PEs: 896,112
-
 # Experimental data points: 38
 # Theoretical data points per radius: 64
 # Radii analyzed: [1, 2, 6]

@@ -1,3 +1,15 @@
+# Algorithm comparison plot saved as 'algo_comparison.png'
+
+# Algorithm Comparison Results:
+# ======================================================================
+# WSE Type   Algorithm            Grid Size       Throughput (Gcells/s)
+# ----------------------------------------------------------------------
+# WSE2       Tiled (r1-optimized) 745,500         4989.6
+# WSE2       Single-cell          745,500         39604.7
+
+# WSE3       Tiled (r1-optimized) 896,112         5026.3
+# WSE3       Single-cell          896,112         34091.2
+
 import matplotlib.pyplot as plt
 import numpy as np
 from colors import light_blue, blue, light_green, green, light_red, red
