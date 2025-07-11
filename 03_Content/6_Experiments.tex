@@ -146,7 +146,7 @@ Unlike the \ac{cpu}, the \ac{gpu} is unaffected by the radius. So much so that a
 
 \subsubsection{\ac{wse}-3 Performance}
 The \ac{wse}-3 throughput depends on both, the grid size and the radius. Its dependence on the radius is significant across all grid sizes with a factor of \num{5.5} between radius \num{2} and \num{6} for a grid of \num{1e4} and factor of \num{2.6} between radius \num{2} and \num{6} for a grid of \num{1e9} (radius one is not comparable since it uses the computationally less intensive r1-optimized implementation).
-The more than linear scaling for small grid sizes can be explained by the fact that these problems use a tile size of \numproduct{1 x 1} for radius \num{1} and \numproduct{6 x 6} for radius \num{6} (because of the radius constraint in \autoref{eq:radius_constraint}) which results in an effective flop count per \ac{pe} of $r^2(8r+1)$.
+The more than linear scaling for small grid sizes can be explained by the fact that these problems use a tile size of \numproduct{1 x 1} for radius \num{1} and \numproduct{6 x 6} for radius \num{6} (because of the radius constraint in \autoref{eq:radius_constraint}) which results in an effective number of \acp{flop} per \ac{pe} of $r^2(8r+1)$.
 
 Further analyzing the \ac{wse}-3's performance, we find that the throughput increases linearly with the grid size for grids of \numrange{1e4}{1e6} elements. This is due to the fact that not all available \acp{pe} can be used for small grids like this and the assumption of perfect weak scaling. When using grid sizes from \num{1e6} to \num{1e8}, the implementation can utilize the whole \ac{wse} and the throughput scales as discussed in \autoref{sec:perf_model_validation}.
 

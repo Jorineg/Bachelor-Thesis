@@ -1,27 +1,54 @@
 %------------------------------
-% INDICES
-%------------------------------
-\nomenclature[I]{$north$}{Northern neighbor in stencil computation}{}{}
-\nomenclature[I]{$east$}{Eastern neighbor in stencil computation}{}{}
-\nomenclature[I]{$south$}{Southern neighbor in stencil computation}{}{}
-\nomenclature[I]{$west$}{Western neighbor in stencil computation}{}{}
-%------------------------------
 % LATIN SYMBOLS
 %------------------------------
-\nomenclature[L]{$r$}{Stencil radius}{}{$1$}
-\nomenclature[L]{$t_w$}{Tile width}{}{$1$}
-\nomenclature[L]{$t_h$}{Tile height}{}{$1$}
-\nomenclature[L]{$v$}{Grid value/element}{}{$1$}
-\nomenclature[L]{$v'$}{Updated grid value/element}{}{$1$}
-\nomenclature[L]{$w_0, w_1, \ldots, w_r$}{Stencil coefficients}{}{$1$}
-\nomenclature[L]{$f$}{Coloring function for PE communication}{}{$1$}
-\nomenclature[L]{$s$}{SIMD width}{}{$1$}
+% Cycle Counts
+\nomenclature[L]{$C$}{Cycle count per iteration}{}{cycles}
+% Throughput & Performance
+\nomenclature[L]{$T$}{Throughput}{}{cells/s}
+\nomenclature[L]{$E_{avg}$}{Average computational efficiency}{}{\%}
+\nomenclature[L]{$F$}{Count of floating-point operations}{}{}
+% Grid and Tile Dimensions
+\nomenclature[L]{$G_w, G_h$}{Global grid width and height}{}{cells}
+\nomenclature[L]{$P_w, P_h$}{Width and height of the PE fabric}{}{\acp{pe}}
+\nomenclature[L]{$r$}{Stencil radius}{}{cells}
+\nomenclature[L]{$t_w, t_h$}{Tile width and height}{}{cells}
+% Stencil Computation
+\nomenclature[L]{$v$}{Grid cell value}{}{}
+\nomenclature[L]{$v'$}{Updated grid cell value}{}{}
+\nomenclature[L]{$w_i$}{Stencil coefficient (weight) at distance $i$}{}{}
+% Coloring Functions
+\nomenclature[L]{$f_s$}{Coloring function for single-cell PE communication}{}{}
+\nomenclature[L]{$f_t$}{Coloring function for tiled PE communication}{}{}
+\nomenclature[L]{$f_{clk}$}{Clock frequency}{}{Hz}
+% Coordinates
+\nomenclature[L]{$x, y$}{Logical coordinates of a cell in the global grid}{}{}
+\nomenclature[L]{$row, col$}{Physical coordinates of a PE on the wafer fabric}{}{}
+
 %------------------------------
 % OPERATORS
 %------------------------------
 \nomenclature[O]{$\bmod$}{Modulo operator}{}{$a \bmod b = a - b \lfloor a/b \rfloor$}
+\nomenclature[O]{$\lceil \cdot \rceil$}{Ceiling function}{}{Rounds up to the nearest integer}
+
+%------------------------------
+% INDICES
+%------------------------------
+\nomenclature[I]{$i$}{Distance index for stencil neighbors, $i \in \{1, \ldots, r\}$}{}{}
+\nomenclature[I]{$north, east, south, west$}{Cardinal directions for neighbors}{}{}
+
 %------------------------------
 % SUBSCRIPTS
 %------------------------------
-\nomenclature[Z]{$\textrm{2}$}{WSE-2 architecture}{}{}
-\nomenclature[Z]{$\textrm{3}$}{WSE-3 architecture}{}{}
+\nomenclature[Z]{$avg$}{Average value}{}{}
+\nomenclature[Z]{$clk$}{Related to the clock}{}{}
+\nomenclature[Z]{$comm$}{Related to communication}{}{}
+\nomenclature[Z]{$comp$}{Related to computation}{}{}
+\nomenclature[Z]{$general$}{Identifier for the general tiled implementation}{}{}
+\nomenclature[Z]{$ideal$}{Related to the idealized (overlapping) performance model}{}{}
+\nomenclature[Z]{$max$}{Maximum value}{}{}
+\nomenclature[Z]{$measured$}{Measured value from experiments}{}{}
+\nomenclature[Z]{$r1$}{Identifier for the r1-optimized implementation}{}{}
+\nomenclature[Z]{$recv$}{Related to receiving data}{}{}
+\nomenclature[Z]{$send$}{Related to sending data}{}{}
+\nomenclature[Z]{$sequential$}{Related to the sequential (non-overlapping) performance model}{}{}
+\nomenclature[Z]{$total$}{Total value}{}{}
