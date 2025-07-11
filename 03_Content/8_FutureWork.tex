@@ -22,12 +22,12 @@ Overhead could be further reduced by strictly using explicit \ac{dsr} assignment
 Our approach lays the foundation for efficient two-dimensional stencil implementations on cerebras and can be extended in several ways.
 One natural way would be to support all box-shaped stencil patterns.
 We believe, this could be done with only minor adjustments that build upon our current approach.
-While the computation would require values from the diagonal neighbors, we could create a strict ordering for the four axial directions and configure the program in a way that it always sends the relevant part of the just received halo region to the next \ac{pe} in the sequence, requiring the same communication steps and routing configuration as already implemented.
+While the computation would require values from the diagonal neighbors, we could create a strict ordering for the four axial directions and configure the program in a way that it always sends the relevant part of the just received halo region to the next \ac{pe} in the sequence, requiring the same communication steps and routing configuration as already implemented. For example the north-south direction would be handled first and in the same way as the in our tiled implementation. The east-west direction would be handled in a separate step and include, different to our current implementation, parts of the just received halo region as well as parts of the buffer, effectively filling the diagonal halo regions of the neighboring \acp{pe} \autoref{fig:data_exchange_box_shaped}.
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.7\textwidth]{box_shaped_data_exchange.png}
-    \caption{Data exchange for a possible box-shaped stencil pattern. The left shows the state after north to south and south to north communication is completed, the right shows the state after all four directions are completed, directly receiving the data from the just filled halo region of the neighbor}
+    \caption{Data exchange pattern between neighboring PEs for box-shaped stencil implementation showing sequential communication steps}
     \label{fig:data_exchange_box_shaped}
 \end{figure}
 

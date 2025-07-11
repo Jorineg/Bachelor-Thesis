@@ -38,7 +38,7 @@ This can be confirmed by the results of this experiment in the simulator with up
         \caption{Tiled implementation}
         \label{fig:tiled_pe_stability}
     \end{subfigure}
-    \caption{Cycle count per iteration versus the number of active PEs for (a) the single-cell and (b) the tiled implementation. For the single-cell implementation, the performance is stable for grids larger than 4x4, with the 3x3 grid showing a notably lower cycle count. The tiled implementation demonstrates a relatively stable cycle count for each configuration, independent of the number of active PEs}
+    \caption{Cycle count per iteration versus the number of active PEs for (a) the single-cell and (b) the tiled implementation}
     \label{fig:pe_overhead}
 \end{figure}
 
@@ -78,7 +78,7 @@ We now analyze the impact of tiling and radius, both in our theoretical performa
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.5\linewidth]{throughput_comparison_wse3.png}
-    \caption{Throughput comparison of theoretical upper bound performance of a perfectly overlapping implementation $T_{ideal}$, an ideal non-overlapping implementation $T_{sequential}$ and the measured throughput of our implementation for different radii and tile sizes.}
+    \caption{Throughput comparison showing theoretical bounds ($T_{ideal}$, $T_{sequential}$) and measured performance for different radii and tile sizes}
     \label{fig:throughput_comparison_wse3}
 \end{figure}
 We can see that the throughput of the theoretical model scales almost proportionally to the inverse of the radius and while the ideal model has a constant throughput for large enough tile sizes, the throughput of sequential model increases as the tile sizes get larger.
@@ -99,11 +99,11 @@ The largest tile size we could test is \numproduct{64 x 64} cells with a radius 
 Comparing our implementation against implementations optimized for traditional \ac{hpc} architectures lets us assess for what parameters it is most beneficial. We also compare our specialized single-cell implementation to the tiled implementation.  
 
 \subsection{Specialized vs. General Kernel}
-The single-cell implementation is a heavily optimized implementation for the special case of only one element per \ac{pe}. It is useful for situations where the problem size is smaller than the physical dimensions of the \ac{wse}. In contrast to the tiled implementation, it doesn't require any runtime \ac{dsd} to \ac{dsr} transfers, asynchronous communication or multiple tasks. These aspects cause most of the overhead in the tiled implementation. Furthermore it does implement overlap between communication and computation which makes it significantly faster than the r1 optimized version of the tiled implementation.
+The single-cell implementation is a heavily optimized implementation for the special case of only one element per \ac{pe}. It is useful for situations where the problem size is smaller than the physical dimensions of the \ac{wse}. In contrast to the tiled implementation, it doesn't require any runtime \ac{dsd} to \ac{dsr} transfers, asynchronous communication or multiple tasks. These aspects cause most of the overhead in the tiled implementation. Furthermore it does implement overlap between communication and computation which makes it significantly faster than the r1 optimized version of the tiled implementation, specifically achieving a 8x improvement in throughput on \ac{wse}-2 and a 7x improvement on \ac{wse}-3.
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.7\linewidth]{algo_comparison.png}
-    \caption{Performance comparison of the specialized single-cell and the r1-optimized tiled implementations for a radius-1 stencil. The specialized, single-cell implementation achieves an 8x speedup on \ac{wse}-2 and a 7x speedup on \ac{wse}-3.}
+    \caption{Throughput comparison of the specialized single-cell and the r1-optimized tiled implementations for a radius-1 stencil on \ac{wse}-2 and \ac{wse}-3}
     \label{fig:algo_comparison}
 \end{figure}
 
