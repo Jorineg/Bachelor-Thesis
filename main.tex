@@ -76,8 +76,8 @@
 %------------------------------
 % PREMATTER
 %------------------------------
-\input{02_Prematter/d_Acknowledgements}
-\clearpage
+% \input{02_Prematter/d_Acknowledgements}
+% \clearpage
 \input{02_Prematter/e_Abstract}
 \clearpage
 %------------------------------
@@ -88,7 +88,9 @@
 % LISTS OF...
 %------------------------------
 \begin{spacing}{1}				% one-line spacing here
+	\acuseall				% mark all acronyms as used for short forms in TOC
 	\tableofcontents			% table of contents
+	\acresetall				% reset acronym counters so they expand on first use in main text
 	\clearpage
 	\pagestyle{scrheadings}		% set page style with header and footer information 
 	\pagenumbering{roman}		% small roman page numbers
