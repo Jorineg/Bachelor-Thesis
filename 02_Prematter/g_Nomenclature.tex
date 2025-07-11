@@ -27,18 +27,23 @@
 %------------------------------
 % OPERATORS
 %------------------------------
+% Alternative: Use \newpage or \clearpage if \needspace doesn't work
+% \newpage
+\needspace{4\baselineskip}
 \nomenclature[O]{$\bmod$}{Modulo operator: $a \bmod b = a - b \lfloor a/b \rfloor$}{}{}
 \nomenclature[O]{$\lceil \cdot \rceil$}{Ceiling function (rounds up to nearest integer)}{}{}
 
 %------------------------------
 % INDICES
 %------------------------------
+\needspace{4\baselineskip}
 \nomenclature[I]{$i$}{Distance index for stencil neighbors, $i \in \{1, \ldots, r\}$}{}{}
 \nomenclature[I]{$north, east, south, west$}{Cardinal directions for neighbors}{}{}
 
 %------------------------------
 % SUBSCRIPTS
 %------------------------------
+\needspace{4\baselineskip}
 \nomenclature[Z]{$avg$}{Average value}{}{}
 \nomenclature[Z]{$clk$}{Related to the clock}{}{}
 \nomenclature[Z]{$comm$}{Related to communication}{}{}
