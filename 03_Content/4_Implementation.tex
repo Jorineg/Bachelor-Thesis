@@ -1,6 +1,6 @@
 \chapter{Implementation}
 \label{sec:implementation}
-The main idea of our implementation is to partition the grid into equal two-dimensional tiles of size $t_w \times t_h$ and assign each tile to a single \ac{pe}, with the benefit that most values required for computing the next iteration already reside in the same \acp{pe}. For the cells on the border-region of the tile, values from neighboring tiles are required. Since communication on Cerebras hardware is limited to the four direct neighbor elements, communication patters that require data to move between non-adjacent \acp{pe}, are far more complex to implement and come with significant communication overhead. For that reason, we limit the scope of this work to parameter combinations that require only communication with the direct neighboring \acp{pe}. This means that the radius of the stencil must be smaller or equal to the tile size, specifically
+The main idea of our implementation is to partition the grid into equal two-dimensional tiles of size $t_w \times t_h$ and assign each tile to a single \ac{pe}, with the benefit that most values required for computing the next iteration already reside in the same \ac{pe}. For the cells on the border region of the tile, values from neighboring tiles are required. Since communication on Cerebras hardware is limited to the four direct neighboring elements, communication patterns that require data to move between non-adjacent \acp{pe}, are far more complex to implement and come with significant communication overhead. For that reason, we limit the scope of this work to parameter combinations that require only communication with the direct neighboring \acp{pe}. This means that the radius of the stencil must be smaller or equal to the tile size, specifically
 \begin{equation}    
 \label{eq:radius_constraint}
 r \leq \min(t_w, t_h)
@@ -41,8 +41,8 @@ The computation for each element can be described as follows:
 Where $v$ is the old value of the element, $v_{north}, v_{east}, v_{south}, v_{west}$ are the values of the four neighbors, $w_0, w_1$ are the stencil coefficients and $v^{'}$ is the new value of the element.
 
 \subsection{Data exchange and routing configuration}
-Each \ac{pe} sends data to, and receives data from its four direct neighboring \acp{pe}. Notably it sends the same data to the four neighbors. This allows for increased communication speed by using the build-in broadcasting functionality of the router. We assign each \ac{pe} a color and define a route so that the router receives data on this color from the \ac{ce} and sends it to the four neighboring routers, which are configured to forward the data to their respective \acp{ce}. Because only one route can be defined per color and router, we use a pattern containing six distinct colors to map the grid.
-The coloring rule can be described as following function $f:\mathbb{N}\times\mathbb{N}\to\{0,1,2,3,4,5\}$:
+Each \ac{pe} sends data to, and receives data from its four direct neighboring \acp{pe}. Notably it sends the same data to the four neighbors. This allows for increased communication speed by using the built-in broadcasting functionality of the router. We assign each \ac{pe} a color and define a route so that the router receives data on this color from the \ac{ce} and sends it to the four neighboring routers, which are configured to forward the data to their respective \acp{ce}. Because only one route can be defined per color and router, we use a pattern containing six distinct colors to map the grid.
+The coloring rule can be described as the following function $f:\mathbb{N}\times\mathbb{N}\to\{0,1,2,3,4,5\}$:
 \begin{equation}
     \label{eq:coloring_function}
     f(x,y) = (x + 2y) \bmod 6
@@ -56,11 +56,11 @@ and visualized in \autoref{fig:r1_stencil_coloring}.
 \end{figure}
 
 \subsection{\ac{pe} Program}
-The implementation for the single-cell implementation is relatively straight forward.
+The implementation for the single-cell implementation is relatively straightforward.
 Although only single elements are processed at a time, \acp{dsd} are needed for communication and for performance reasons explicit \ac{dsr} assignment is employed, decreasing the number of cycles per iteration significantly.  
 Further, the center multiplication is placed at the beginning of each iteration in a way that it overlaps with the communication delay and does not need an additional cycle.
-Because only one fp32 element is received from and send to each neighbour, input and output queues never fill up completely and synchronous \ac{dsd} operations can be used instead of asynchronous operations that add significant overhead.
-Furthermore, the algorithm multiplies the value which is send to the neighbors with the coefficient $w_1$ while sending, so that the receiving \acp{pe} only add these values to $w_0 \cdot v$ to get the new value.
+Because only one fp32 element is received from and sent to each neighbor, input and output queues never fill up completely and synchronous \ac{dsd} operations can be used instead of asynchronous operations that add significant overhead.
+Furthermore, the algorithm multiplies the value that is sent to the neighbors with the coefficient $w_1$ while sending, so that the receiving \acp{pe} only add these values to $w_0 \cdot v$ to get the new value.
 By computing the intermediate values $intermediate_1$ and $intermediate_2$ before adding them to $value$, the number of cycles for this part of the calculation is reduced from 10 to 7.
 
 % \begin{algorithm}[tbh]
@@ -92,7 +92,7 @@ By computing the intermediate values $intermediate_1$ and $intermediate_2$ befor
 
 
 While the reason for this performance benefit cannot be explained by the publicly available documentation from Cerebras, speculation from limited testing suggests that values seem to be available to a following operation only three cycles after they were written to.
-Our empirical analysis revealed a data dependency stall: an operation using a register as an operand is delayed until at least three cycles have passed since that register was last written to. While this behavior is not detailed in the public documentation, it consistently impacts performance. By reordering the computation to use intermediate variables (as shown in \autoref{alg:intermediate_values}), we mitigate these stalls, reducing the cycle count for this computational segment from 10 to 7 cycles.
+Our empirical analysis revealed a data dependency stall: an operation using a register as an operand is delayed until at least three cycles have passed since that register was last written to. While this behavior is not detailed in the public documentation, it consistently impacts performance. By reordering the computation to use intermediate variables, we mitigate these stalls, reducing the cycle count for this computational segment from 10 to 7 cycles.
 
 Unfortunately, this does not work on WSE-3, since it allows at most one fabric \ac{dsd} arguments per operation.
 
@@ -124,10 +124,10 @@ Where $v$ is the old value of the element, $v_{north,i}, v_{east,i}, v_{south,i}
 \begin{figure}
     \centering
     \includegraphics[width=0.5\linewidth]{grid_visualization.png}
-    \caption{Data layout within two neighboring \acp{pe} for the tiled stencil with tile size $t_w=3, t_h=4$ and radius $r=2$. The light green area represents the \ac{pe}'s assigned grid tile. The surrounding light blue halo region stores data received from neighbors, while the green and blue thick borders show the data regions exchanged between neighboring \acp{pe}.}
+    \caption{Data layout within two neighboring \acp{pe} for the tiled stencil with tile size $t_w=3, t_h=4$ and radius $r=2$. The light green area represents the \ac{pe}'s assigned grid tile. The surrounding light blue halo region stores data received from neighboring \acp{pe}, while the green and blue thick borders show the data regions exchanged between neighboring \acp{pe}.}
     \label{fig:grid_visualization}
 \end{figure}
-The communication for the variable tile size requires one \ac{pe} to send different data to its neighbors. This is visualized in \autoref{fig:grid_visualization}. This requires four distinct colors for sending to the different neighbors as well as four colors to receive. For each of the four directions, a pair of colors is used and arranged in a checkerboard pattern across the \ac{pe}-grid.
+The communication for the variable tile size requires one \ac{pe} to send different data to its neighbors. This is visualized in \autoref{fig:grid_visualization}. This requires four distinct colors for sending to the different neighbors as well as four colors to receive. For each of the four directions, a pair of colors is used and arranged in a checkerboard pattern across the \ac{pe} grid.
 If colors 0 and 1 are used for data transfer from west to east, following function can be used to determine what color is used to send and to receive:
 \begin{equation}
     \label{eq:tiled_coloring_function}
@@ -151,10 +151,10 @@ Where $f$ determines the color used to send data east and $1-f$ is used to recei
     \label{fig:stencil_algorithm_animation}
 \end{figure}
 
-The tile of the grid, held by single \ac{pe} is stored in the center region of a 2D array of size $(t_h+2r)\times (t_w+2r)$ - the $buffer$. This array is larger than the tile itself to allow for the halo region, which is used to store the data received from the neighbors. Furthermore an accumulator array of the same size is used to store the intermediate values of the stencil computation. In this array, only the center of size $t_h, t_w$ is used. Choosing its size to be the same as the buffer leads to more consistent memory access patterns, which reduces bank conflicts.
+The tile of the grid, held by a single \ac{pe} is stored in the center region of a 2D array of size $(t_h+2r)\times (t_w+2r)$ - the $buffer$. This array is larger than the tile itself to allow for the halo region, which is used to store the data received from the neighbors. Furthermore an accumulator array of the same size is used to store the intermediate values of the stencil computation. In this array, only the center of size $t_h, t_w$ is used. Choosing its size to be the same as the buffer leads to more consistent memory access patterns, which reduces bank conflicts.
 
 Two \texttt{mem4d\_dsd}s per direction are used for communication. One that specifies the location within the buffer of the data to send and one that specifies the location of the data to receive.
-Asynchronous \texttt{@fmovs} instructions are used for data exchange. Two counters track the completion of asynchronous send and receive operations. Once all four neighbor data blocks have been sent and all four have been received, the main computation task is triggered. This ensures that the computation only starts once all necessary data is available in the halo regions.
+Asynchronous \texttt{@fmovs} instructions are used for data exchange. Two counters track the completion of asynchronous send and receive operations. Once all four neighbor data blocks have been sent and all four have been received, the main computation task is triggered. This ensures that the computation only starts once all necessary data is received.
 
 The \ac{dsd} configuration for the tiled implementation is shown in \autoref{lst:dsd_config}.
 
@@ -235,9 +235,9 @@ The static border is implemented by using a ring of \acp{pe} that only send and 
 
 \subsection{r1-optimized version}
 
-As a special case of the tiled implementation, the problem with radius one was further optimized by using \texttt{mem1d\_dsd}s instead of \texttt{mem4d\_dsd}s for the halo regions where the neighbors data is received as well as the data to send. Furthermore the shifted \acp{dsd} are precomputed and all \acp{dsd} are explicitly assigned to distinct \acp{dsr}. There are enough \acp{dsr} available so that each \ac{dsr} is used for at most one \ac{dsd}. This allows for a significant reduction in the number of cycles per iteration, since loading the \acp{dsd} into \acp{dsr} only needs to be done once, independent of the number of iterations. We still find that the \acp{dsd} used for reading the parts of the buffer that are send to the neighbors and the ones describing the halo regions for receiving need to be reloaded to the \acp{dsr} for each iteration. The load to \ac{dsr} for these \acp{dsd} acts as a kind of reset and if not done, it leads to buffer overflows. The documentation doesn't specify this requirement and interestingly, it is not necessary for all \acp{dsd}. 
-As another optimization, \texttt{@fadds} are used instead of \texttt{@fmacs} and the multiplication is handled separately. This reduces the flop number from $9$ to $6$ per element and results in a performance improvement because the simd width for \texttt{@fadds} is 2/4 on wse-2/3 while it is only 1 for \texttt{@fmacs}. Note that the shifted \acp{dsd} $buffer\_center\_dsd_{DIR,i}$ in the general version need to be created for each iteration of the loop while pre-computed \acp{dsd} are used in this optimized version.
-Furthermore we find that on \ac{wse}-3 for radius one and tile sizes greater than four, we can rely on explicitly set task priorities instead of counters to ensure the computation task only starts if all data is receive. This further reduces overhead. 
+As a special case of the tiled implementation, the problem with radius one was further optimized by using \texttt{mem1d\_dsd}s instead of \texttt{mem4d\_dsd}s for the halo regions where the neighbors data is received as well as the data to send. Furthermore the shifted \acp{dsd} are precomputed and all \acp{dsd} are explicitly assigned to distinct \acp{dsr}. There are enough \acp{dsr} available so that each \ac{dsr} is used for at most one \ac{dsd}. This allows for a significant reduction in the number of cycles per iteration, since loading the \acp{dsd} into \acp{dsr} only needs to be done once, independent of the number of iterations. We still find that the \acp{dsd} used for reading the parts of the buffer that are sent to the neighbors and the ones describing the halo regions for receiving need to be reloaded to the \acp{dsr} for each iteration. The load to \ac{dsr} for these \acp{dsd} acts as a kind of reset and if not done, it leads to buffer overflows. The documentation doesn't specify this requirement and interestingly, it is not necessary for all \acp{dsd}. 
+As another optimization, \texttt{@fadds} are used instead of \texttt{@fmacs} and the multiplication is handled separately. This reduces the flop number from $9$ to $6$ per element and results in a performance improvement because the \ac{simd} width for \texttt{@fadds} is 2/4 on wse-2/3 while it is only 1 for \texttt{@fmacs}. Note that the shifted \acp{dsd} $buffer\_center\_dsd_{DIR,i}$ in the general version need to be created for each iteration of the loop while pre-computed \acp{dsd} are used in this optimized version.
+Furthermore we find that on \ac{wse}-3 for radius one and tile sizes greater than four, we can rely on explicitly set task priorities instead of counters to ensure the computation task only starts if all data is received. This further reduces overhead. 
 
 For all experiments in this work, the r1-optimized version is used whenever applicable, except when explicitly stated otherwise.
 

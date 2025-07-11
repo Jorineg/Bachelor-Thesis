@@ -1,6 +1,6 @@
 \chapter{Theoretical Performance Evaluation}
 \label{sec:theory_performance}
-To understand the performance characteristics and limitations of our tiled stencil implementations on the \ac{wse}-3, we develop a simplified performance model for the maximum possible throughput per \ac{pe}. This will help us to understand if the problem is compute-bound or communication-bound. It also allows us to see, how close our implementation is to the theoretical machine limits.
+To understand the performance characteristics and limitations of our tiled stencil implementations on the \ac{wse}-3, we develop a simplified performance model for the maximum possible throughput per \ac{pe}. This will help us understand if the problem is compute-bound or communication-bound. It also allows us to see, how close our implementation is to the theoretical machine limits.
 
 The stencil performance is limited by two main factors: the time it takes for a \ac{pe} to receive all data needed for the computation of one iteration ($C_{comm}$) and the time it takes to perform the computation itself ($C_{comp}$). Unlike traditional hardware the memory on the \ac{pe} is never a bottleneck, as it is designed with a bandwidth and latency to provide data at the same speed the \ac{ce} can process it.
 
@@ -22,7 +22,7 @@ Our implementation however does not overlap communication and computation. The t
 
 We will now analyze the two components in more detail. The computation each \ac{pe} needs to perform is defined by the number of cells it needs to process and the operations it needs to perform on each cell. If the operations support \ac{simd} execution it can run in parallel on multiple cells at once. We can calculate the cycles by dividing the respective operation count by the operation's \ac{simd} width.
 
-We seperately analyze $C_{comp}$ for the r1-optimized and the general implementation. The r1-optimized implementation uses 4 \texttt{@fadds} instructions that support \ac{simd} execution with a \ac{simd} width of four and 2 \texttt{@fmuls} instructions that only have a \ac{simd} width of one.
+We separately analyze $C_{comp}$ for the r1-optimized and the general implementation. The r1-optimized implementation uses 4 \texttt{@fadds} instructions that support \ac{simd} execution with a \ac{simd} width of four and 2 \texttt{@fmuls} instructions that only have a \ac{simd} width of one.
 
 \begin{equation}
     \begin{aligned}
@@ -44,7 +44,7 @@ The general implementation uses $4r$ \texttt{@fmacs} and one \texttt{@fmuls} ins
 \end{equation}
 
 
-The communication time $C_{comm}$ is defined by the number of elements that each \ac{pe} sends and receives. As we use 32 bit floating point numbers and the link between the router and \ac{ce} supports exactly 32 bit per cycle, the number of cycles needed for communication is just the number of elements that each \ac{pe} sends and receives. Although the bidirectional link between router and \ac{ce} would allow parallel sending and receiving, the \ac{ce} is not able to run these two operations in parallel. As each \ac{pe} sends the same number of elements as it receives, we can count the received elements and multiply by two. The halo region that need to be filled with the neighbors data have $r t_w$ elements each in the north and south direction and $r t_h$ elements in the east and west direction. The total communication cycles are then:
+The communication time $C_{comm}$ is defined by the number of elements that each \ac{pe} sends and receives. As we use 32 bit floating point numbers and the link between the router and \ac{ce} supports exactly 32 bit per cycle, the number of cycles needed for communication is just the number of elements that each \ac{pe} sends and receives. Although the bidirectional link between router and \ac{ce} would allow parallel sending and receiving, the \ac{ce} is not able to run these two operations in parallel. As each \ac{pe} sends the same number of elements as it receives, we can count the received elements and multiply by two. The halo regions that need to be filled with the neighbors data have $r t_w$ elements each in the north and south direction and $r t_h$ elements in the east and west direction. The total communication cycles are then:
 
 \begin{equation}
     \label{eq:c_comm}

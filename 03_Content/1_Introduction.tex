@@ -2,23 +2,23 @@
 % Der job der Einleitung: die contributions verstehen.
 % muss nicht mehr als 2 oder 3 seiten sein.
 Stencil computations form the computational heart of scientific simulations across disciplines, from modeling heat dissipation in semiconductor chips to simulating complex seismic waves.
-They have in common that a grid of numbers is iterativly updated by applying a local function.
+They have in common that a grid of numbers is iteratively updated by applying a local function.
 The low arithmetic intensity makes these types of problems difficult to run efficiently on traditional hardware.
-Optimizing it typically involes tiling the problem at different levels to utilize the cache hierarchy effectively.
+Optimizing it typically involves tiling the problem at different levels to utilize the cache hierarchy effectively.
 A special challenge represent high-order stencils as their update relies on cells that are further away, which makes tiling more difficult.
 
 Cerebras developed the \ac{wse}, a new kind of hardware that consists of almost a million cores, all residing on a single chip.
-All cores have their own, local memory and are connected via a 2D fabric mesh, connecting every core with its four direct neighbours.
+All cores have their own, local memory and are connected via a 2D fabric mesh, connecting every core with its four direct neighbors.
 In October 2021, Cerebras released Version 0.2.0 of their SDK, allowing the general public to implement custom kernels for the \ac{wse} using their own language \ac{csl}. 
-This made the \ac{wse} an interesting target for stencil codes and has been used to dramatically accelerate different 3D stencil applications using 7 or 25 point stencils for solving the heat equation or 3D wave equation \cite{jacquelin2022scalable,rocki2020fast,woo2022disruptive,sai2024matrix}.
+This made the \ac{wse} an interesting target for stencil codes and has been used to dramatically accelerate different 3D stencil applications using 7- or 25-point stencils for solving the heat equation or 3D wave equation \cite{jacquelin2022scalable,rocki2020fast,woo2022disruptive,sai2024matrix}.
 All of these approaches map x and y dimension to the x and y dimension of the \ac{wse}, while mapping the z dimension to the memory within each core.
 
-2D stencils have only been attemped once and without using \ac{csl}. Instead, convolutional filters in TensorFlow were used to define stencils that could run on the \ac{wse}\cite{brown2022tensorflow}. In this work, it was shown that, although utilizing the \ac{wse} in a suboptimal setting, it could outperform four Nvidia V100 by a factor of 2.5. While 3D stencil implementations could also be used for solving 2D stencil problems by setting one of the dimensions to one, this is a very inefficient way using the \ac{wse}.
+2D stencils have only been attempted once and without using \ac{csl}. Instead, convolutional filters in TensorFlow were used to define stencils that could run on the \ac{wse}\cite{brown2022tensorflow}. In this work, it was shown that, although utilizing the \ac{wse} in a suboptimal setting, it could outperform four Nvidia V100s by a factor of 2.5. While 3D stencil implementations could also be used for solving 2D stencil problems by setting one of the dimensions to one, this is a very inefficient way of using the \ac{wse}.
 
 This work presents a custom implementation for 2D stencils on the \ac{wse} by tiling the grid along the x and y dimensions and mapping these tiles to the individual cores.
 % Unlike tiling used to optimize stencils on traditional \ac{hpc} hardware, where the work is split up while the whole problem resides in one 
 This dramatically changes the data exchange pattern in a way that reduces communication between the cores relative to the computation.
-Unlike the existing 3D implementations, where high-order stencils always come with communication across multiple cores, tiling the grid for 2D stencils allows high-order stencils with communication patterns that only use direct neighbors, which makes it potentially very efficient.
+Unlike the existing 3D implementations, where high-order stencils always come with communication across multiple cores, tiling the grid for 2D stencils allows high-order stencils with communication patterns that only use direct neighboring \acp{pe}, which makes it potentially very efficient.
 
 The main contributions of this thesis are:
 \begin{itemize}
