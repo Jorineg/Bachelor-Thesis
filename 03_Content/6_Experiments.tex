@@ -180,7 +180,7 @@ For radius 2 and the maximum tile size of \numproduct{64 x 64}, we reach \num{82
 These numbers are extrapolated from our small-scale simulator experiments and assume perfect weak scaling across the entire \ac{wse} as already discussed. 
 In general, the achieved percentage of peak performance mostly increases with the tile size. There is no clear trend for the radius, except for radius 1, which is using the r1-optimized implementation and, as discussed in \autoref{sec:theory_performance}, is farthest from the peak performance.
 
-In the optimal configuration, our implementation may reasonably be expected to reach a sustained performance of 1.01 P\acp{flops} for the \ac{wse}-2 and 1.29 P\acp{flops} for the \ac{wse}-3.
+In the optimal configuration, our implementation may reasonably be expected to reach a sustained performance of 1.01 P\ac{flops} for the \ac{wse}-2 and 1.29 P\ac{flops} for the \ac{wse}-3.
 
 \section{Conclusions}
 In this work, we demonstrated an efficient implementation for 2D star-shaped stencils targeting the \ac{wse}-2 and \ac{wse}-3 that uses tiling of the problem domain as the core mechanism to increase computation workload relative to communication. We developed a simplified performance model which we used to analyze the scaling properties of the kernel. Furthermore, we validated the performance model with experiments on the cycle-accurate simulator for the \ac{wse}.
