@@ -9,13 +9,13 @@
 %------------------------------
 \begin{otherlanguage}{ngerman}
 \section*{Zusammenfassung}
-Effiziente Stencil-Berechnungen sind entscheidend für Bereiche wie Materialwissenschaft, Klimamodellierung oder Aerodynamik. Neue Hardware-Beschleuniger, wie die Cerebras \ac{wse}, bieten ein neues Programmierparadigma, das effizientere Stencil-Berechnungen im Vergleich zu traditionellen Ansätzen mit \acp{cpu} oder \acp{gpu} ermöglicht.
+Stencil-Berechnungen sind ein grundlegender Bestandteil einer Vielzahl von wissenschaftlichen Disziplinen, darunter Klimamodellierung, Fluiddynamik und Materialwissenschaft. Ihre geringe arithmetische Intensität macht ihre effiziente Implementierung auf traditioneller Hardware jedoch notorisch schwierig.
 
-Diese Arbeit untersucht das Design, die Implementierung und die Leistungsanalyse von 2D sternförmigen Stencils auf der Cerebras \ac{wse}-Architektur. Zwei verschiedene Implementierungen werden entwickelt: eine latenz-optimierte, direkt abgebildete Implementierung für Radius-1-Stencils und eine flexible, gekachelte Implementierung für variable-Radius-Stencils.
+Der Cerebras \acf{wse} ist eine neuartige Hardware-Architektur, die fast eine Million Rechenkerne auf einem einzigen Chip vereint. Ihr Potenzial für hocheffiziente Stencil-Implementierungen wurde bereits im Kontext von 3D-Stencils demonstriert, typischerweise durch die Abbildung der z-Dimension auf den Speicher der einzelnen Kerne. Effiziente Implementierungen für 2D-Stencils stellen jedoch weiterhin eine offene Herausforderung dar.
 
-Die Beiträge umfassen eine detaillierte Leistungsanalyse beider Implementierungen, die Untersuchung des Parameterraums des gekachelten Algorithmus und den Vergleich der \ac{wse}-Implementierungen mit hochoptimierten Codes für moderne Mehrkern-\acp{cpu} und High-End-\acp{gpu}. Zusätzlich wird ein vereinfachtes Leistungsmodell für die implementierten Stencil-Operatoren vorgestellt, das wichtige architektonische Merkmale der \ac{wse} berücksichtigt.
+Diese Arbeit präsentiert und evaluiert einen neuartigen Implementierungsansatz für zweidimensionale, sternförmige Stencils auf der Cerebras-Hardware. Durch die Aufteilung der Problemdomäne in Kacheln (Tiling) und deren Abbildung auf die einzelnen Rechenkerne reduziert dieser Ansatz den Kommunikationsaufwand im Verhältnis zur Rechenlast erheblich. Wir entwickeln und evaluieren zwei Kernel: einen durchsatzoptimierten, gekachelten Kernel für große Problemdomänen und eine spezialisierte Einzelzellen-Implementierung für Gitter, die vollständig auf die physikalischen Dimensionen des \ac{wse} passen.
 
-Die Ergebnisse zeigen erhebliche Leistungsvorteile der \ac{wse}-Architektur für Stencil-Berechnungen mit Beschleunigungen von bis zu 800x im Vergleich zu \ac{gpu}-Implementierungen für bestimmte Konfigurationen, was das Potenzial spezialisierter Hardware-Beschleuniger für rechnerische Wissenschaftsanwendungen unterstreicht.
+Unsere Implementierungen erreichen eine bemerkenswerte Leistung von bis zu 165 Tera-Zellen/s auf einem simulierten \ac{wse}-3, erzielen für bestimmte Problemgrößen 41\% der Spitzen-Gleitkommaleistung des \ac{wse}-3 und übertreffen eine optimierte Devito-Implementierung auf einer NVIDIA H100 \ac{gpu} um mehr als drei Größenordnungen.
 
 \section*{Schlüsselwörter:} \itshape \germankeywords
 \end{otherlanguage}
@@ -24,13 +24,13 @@ Die Ergebnisse zeigen erhebliche Leistungsvorteile der \ac{wse}-Architektur für
 %------------------------------
 \begin{otherlanguage}{english}
 \section*{Abstract}
-Efficient stencil computation is essential to fields as material science, climate modeling or aero dynamics. New hardware accelerators, like the Cerebras wafer scale engine (\ac{wse}), offer a new programming paradigm that allows more efficient stencil computation compared to traditional approaches using \acp{cpu} or \acp{gpu}.
+Stencil computations are fundamental to various disciplines including climate modeling, fluid dynamics and material science.
+However, their low arithmetic intensity makes their efficient implementation on traditional hardware notoriously difficult.
 
-This thesis investigates the design, implementation, and performance analysis of 2D star-shaped stencils on the Cerebras \ac{wse} architecture. Two distinct implementations are developed: a latency-optimized, directly-mapped implementation for radius-1 stencils and a flexible, tiled implementation for variable-radius stencils. 
+The Cerebras \acf{wse} is a novel hardware architecture, featuring almost one million cores on a single chip. Its potential for highly efficient stencil implementations has already been demonstrated in the context of 3D stencils, typically by mapping the z-dimension to the memory within each core. Yet, efficient implementations for 2D stencils remain an open challenge.
 
-The main contributions include a detailed performance analysis comparing both implementations, investigating the tiled algorithm's parameter space, and benchmarking \ac{wse} implementations against highly optimized code for modern multi-core \acp{cpu} and high-end \acp{gpu}. Additionally, a simplified performance model for the implemented stencil operators is presented, accounting for key architectural features of the \ac{wse}.
+This work presents and evaluates a novel implementation approach for 2D star-shaped stencils on Cerebras hardware. By tiling the problem domain and mapping these tiles to the individual cores, this approach significantly reduces the communication overhead, relative to the computational workload. We develop and evaluate two kernels: a high-throughput, tiled kernel for large problem domains and a specialized single-cell implementation for grids that fit entirely within the \ac{wse}'s physical dimensions.
 
-The results demonstrate significant performance advantages of the \ac{wse} architecture for stencil computations, with speedups of up to 800x compared to \ac{gpu} implementations for certain configurations, highlighting the potential of specialized hardware accelerators for computational science applications.
-
+Our implementations achieve remarkable performance on a simulated \ac{wse}-3 of up to 165 Tera-cells/s, reach 41\% of \ac{wse}-3's peak floating-point performance for certain problem sizes, and outperform an optimized Devito implementation on an NVIDIA H100 \ac{gpu} by over three orders of magnitude. 
 \section*{Keywords:} \itshape \englishkeywords
 \end{otherlanguage}
