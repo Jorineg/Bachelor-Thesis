@@ -1,6 +1,6 @@
 \chapter{Implementation}
 \label{sec:implementation}
-The main idea of our implementation is to partition the grid into equal two-dimensional tiles of size $t_w \times t_h$ and assign each tile to a single \ac{pe}, with the benefit that most values required for computing the next iteration already reside in the same \ac{pe}. For the cells on the border region of the tile, values from neighboring tiles are required. Since communication on Cerebras hardware is limited to the four direct neighboring elements, communication patterns that require data to move between non-adjacent \acp{pe}, are far more complex to implement and come with significant communication overhead. For that reason, we limit the scope of this work to parameter combinations that require only communication with the direct neighboring \acp{pe}. This means that the radius of the stencil must be smaller or equal to the tile size, specifically
+The main idea of the implementation is to partition the grid into equal two-dimensional tiles of size $t_w \times t_h$ and assign each tile to a single \ac{pe}, with the benefit that most values required for computing the next iteration already reside in the same \ac{pe}. For the cells on the border region of the tile, values from neighboring tiles are required. Since communication on Cerebras hardware is limited to the four direct neighboring elements, communication patterns that require data to move between non-adjacent \acp{pe}, are far more complex to implement and come with significant communication overhead. For that reason, we limit the scope of this work to parameter combinations that require only communication with the direct neighboring \acp{pe}. This means that the radius of the stencil must be smaller or equal to the tile size, specifically
 \begin{equation}    
 \label{eq:radius_constraint}
 r \leq \min(t_w, t_h)
@@ -11,16 +11,16 @@ For the simple case where $t_w=t_h=1$, this results in a radius of 1.
 Two main approaches were implemented:
 \begin{itemize}
     \item A specialized, single cell implementation, that represents each element of the grid with one \ac{pe} and restricts the radius to one
-    \item A general, tiled implementation maps multiple elements of the underlying grid, i.e., a tile size of $t_w \times t_h$, to a single \ac{pe}, allows for grid sizes that significantly exceed the \ac{wse} hardware dimensions and a radius greater than one as long as \autoref{eq:radius_constraint} is satisfied 
+    \item A general, tiled implementation maps multiple elements of the underlying grid, i.e., a tile size of $t_w \times t_h$, to a single \ac{pe}, allowing for grid sizes that significantly exceed the \ac{wse} hardware dimensions and a radius greater than one as long as \autoref{eq:radius_constraint} is satisfied 
 \end{itemize}
 
-A special case of the tiled implementation, where the radius is one, has been further optimized to reduce overhead. We refer to this as the r1-optimized version of the tiled implementation. 
+A special case of the tiled implementation with a stencil radius of one has been further optimized to minimize overhead. This variant is referred to as the r1-optimized version of the tiled implementation.
 
 Although the experiments throughout this thesis utilize symmetric, constant coefficients, the presented implementations offer different degrees of flexibility for more general stencil forms.
 
 The single cell implementation, as well as the r1-optimized tiled version, leverage optimizations that rely on symmetric coefficients. This restriction enables significant performance gains for this specific use case. In contrast, the general tiled implementation could handle asymmetric coefficients with minimal modifications without increasing the number of computational cycles.
 
-Regarding spatially varying coefficients, all implementations could be adapted to handle them without performance degradation. The tiled implementations are already designed for each PE to receive its own set of coefficients from the host, meaning a shift to variable coefficients would require no changes to the CSL kernel. The single-cell implementation uses fixed weights but could support variable coefficients with a minor modification which would also incur no runtime overhead.
+Spatially varying coefficients are fully supported by both the tiled and r1-optimized implementations, as each \ac{pe} receives its own set of coefficients from the host. While this capability has not been empirically tested, it requires no modification to the existing kernel. The single-cell implementation currently uses fixed weights but could support variable coefficients with a minor change, without incurring any runtime overhead.
 
 The tiled implementation consists of a top-level time-step loop comprising separate data exchange and compute steps in each iteration, while the single-cell implementation interleaves the two steps.
 
@@ -41,7 +41,7 @@ The computation for each element can be described as follows:
 Where $v$ is the old value of the element, $v_{north}, v_{east}, v_{south}, v_{west}$ are the values of the four neighbors, $w_0, w_1$ are the stencil coefficients and $v^{'}$ is the new value of the element.
 
 \subsection{Data exchange and routing configuration}
-Each \ac{pe} sends data to, and receives data from its four direct neighboring \acp{pe}. Notably it sends the same data to the four neighbors. This allows for increased communication speed by using the built-in broadcasting functionality of the router. We assign each \ac{pe} a color and define a route so that the router receives data on this color from the \ac{ce} and sends it to the four neighboring routers, which are configured to forward the data to their respective \acp{ce}. Because only one route can be defined per color and router, we use a pattern containing six distinct colors to map the grid.
+Each \ac{pe} sends data to, and receives data from its four direct neighboring \acp{pe}. Notably, it sends the same data to the four neighbors. This allows for increased communication speed by using the built-in broadcasting functionality of the router. We assign each \ac{pe} a color and define a route so that the router receives data on this color from the \ac{ce} and sends it to the four neighboring routers, which are configured to forward the data to their respective \acp{ce}. Because only one route can be defined per color and router, we use a pattern containing six distinct colors to map the grid.
 The coloring rule can be described as the following function $f_s:\mathbb{N}\times\mathbb{N}\to\{0,1,2,3,4,5\}$:
 \begin{equation}
     \label{eq:coloring_function}
@@ -59,7 +59,7 @@ and visualized in \autoref{fig:r1_stencil_coloring}.
 The implementation for the single-cell implementation is relatively straightforward.
 Although only single elements are processed at a time, \acp{dsd} are needed for communication and for performance reasons explicit \ac{dsr} assignment is employed, decreasing the number of cycles per iteration significantly.  
 Further, the center multiplication is placed at the beginning of each iteration in a way that it overlaps with the communication delay and does not need an additional cycle.
-Because only one fp32 element is received from and sent to each neighbor, input and output queues never fill up completely and synchronous \ac{dsd} operations can be used instead of asynchronous operations that add significant overhead.
+Because only one fp32 element is received from and sent to each neighbor, input and output queues never fill up completely and synchronous \ac{dsd} operations can be used instead of asynchronous operations that would add significant overhead.
 Furthermore, the algorithm multiplies the value that is sent to the neighbors with the coefficient $w_1$ while sending, so that the receiving \acp{pe} only add these values to $w_0 \cdot v$ to get the new value.
 By computing the intermediate values $intermediate_1$ and $intermediate_2$ before adding them to $value$, the number of cycles for this part of the calculation is reduced from 10 to 7.
 
@@ -92,7 +92,7 @@ By computing the intermediate values $intermediate_1$ and $intermediate_2$ befor
 
 
 While the reason for this performance benefit cannot be explained by the publicly available documentation from Cerebras, speculation from limited testing suggests that values seem to be available to a following operation only three cycles after they were written to.
-Our empirical analysis revealed a data dependency stall: an operation using a register as an operand is delayed until at least three cycles have passed since that register was last written to. While this behavior is not detailed in the public documentation, it consistently impacts performance. By reordering the computation to use intermediate variables, we mitigate these stalls, reducing the cycle count for this computational segment from 10 to 7 cycles.
+Our empirical analysis revealed a data dependency stall: an operation using a register as an operand is delayed until at least three cycles have passed since that register was last written to. While this behavior is not described in the public documentation, it consistently impacts performance. By reordering the computation to use intermediate variables, we mitigate these stalls, reducing the cycle count for this computational segment from 10 to 7 cycles.
 
 Unfortunately, this does not work on WSE-3, since it allows at most one fabric \ac{dsd} arguments per operation.
 
@@ -151,7 +151,7 @@ Where $f_t$ determines the color used to send data east and $1-f_t$ is used to r
     \label{fig:stencil_algorithm_animation}
 \end{figure}
 
-The tile of the grid, held by a single \ac{pe} is stored in the center region of a 2D array of size $(t_h+2r)\times (t_w+2r)$ - the $buffer$. This array is larger than the tile itself to allow for the halo region, which is used to store the data received from the neighbors. Furthermore an accumulator array of the same size is used to store the intermediate values of the stencil computation. In this array, only the center of size $t_h, t_w$ is used. Choosing its size to be the same as the buffer leads to more consistent memory access patterns, which reduces bank conflicts.
+The tile of the grid, held by a single \ac{pe} is stored in the center region of a 2D array of size $(t_h+2r)\times (t_w+2r)$ - the \empf{buffer}. This array is larger than the tile itself to allow for the halo region, which is used to store the data received from the neighbors. Furthermore an accumulator array of the same size is used to store the intermediate values of the stencil computation. In this array, only the center of size $t_h, t_w$ is used. Choosing its size to be the same as the buffer leads to more consistent memory access patterns, which reduces bank conflicts.
 
 Two \texttt{mem4d\_dsd}s per direction are used for communication. One that specifies the location within the buffer of the data to send and one that specifies the location of the data to receive.
 Asynchronous \texttt{@fmovs} instructions are used for data exchange. Two counters track the completion of asynchronous send and receive operations. Once all four neighbor data blocks have been sent and all four have been received, the main computation task is triggered. This ensures that the computation only starts once all necessary data is received.
@@ -233,9 +233,13 @@ The static border is implemented by using a ring of \acp{pe} that only send and 
     \end{tabular}
 \end{table}
 
-\subsection{r1-optimized version}
+\subsection{R1-Optimized Version}
 
-As a special case of the tiled implementation, the problem with radius one was further optimized by using \texttt{mem1d\_dsd}s instead of \texttt{mem4d\_dsd}s for the halo regions where the neighbors data is received as well as the data to send. Furthermore the shifted \acp{dsd} are precomputed and all \acp{dsd} are explicitly assigned to distinct \acp{dsr}. There are enough \acp{dsr} available so that each \ac{dsr} is used for at most one \ac{dsd}. This allows for a significant reduction in the number of cycles per iteration, since loading the \acp{dsd} into \acp{dsr} only needs to be done once, independent of the number of iterations. We still find that the \acp{dsd} used for reading the parts of the buffer that are sent to the neighbors and the ones describing the halo regions for receiving need to be reloaded to the \acp{dsr} for each iteration. The load to \ac{dsr} for these \acp{dsd} acts as a kind of reset and if not done, it leads to buffer overflows. The documentation doesn't specify this requirement and interestingly, it is not necessary for all \acp{dsd}. 
+As a special case of the tiled implementation, the problem with radius one was further optimized by using \texttt{mem1d\_dsd}s instead of \texttt{mem4d\_dsd}s for the halo regions where the neighbors data is received as well as the data to send. Furthermore the shifted \acp{dsd} are precomputed and all \acp{dsd} are explicitly assigned to distinct \acp{dsr}.
+There are enough \acp{dsr} available so that each \ac{dsr} is used for at most one \ac{dsd}. This allows for a significant reduction in the number of cycles per iteration, since loading the \acp{dsd} into \acp{dsr} only needs to be done once, independent of the number of iterations.
+We still find that the \acp{dsd} used for reading the parts of the buffer that are sent to the neighbors and the ones describing the halo regions for receiving need to be reloaded to \acp{dsr} in each iteration.
+The \texttt{@load_to_dsr} operations act as a reset mechanism for these \acp{dsd} and omitting them results in buffer overflows.
+The documentation doesn't specify this requirement and interestingly, it is not necessary for all \acp{dsd}. 
 As another optimization, \texttt{@fadds} are used instead of \texttt{@fmacs} and the multiplication is handled separately. This reduces the number of \acp{flop} from $9$ to $6$ per element and results in a performance improvement because the \ac{simd} width for \texttt{@fadds} is 2/4 on wse-2/3 while it is only 1 for \texttt{@fmacs}. Note that the shifted \acp{dsd} $buffer\_center\_dsd_{DIR,i}$ in the general version need to be created for each iteration of the loop while pre-computed \acp{dsd} are used in this optimized version.
 Furthermore we find that on \ac{wse}-3 for radius one and tile sizes greater than four, we can rely on explicitly set task priorities instead of counters to ensure the computation task only starts if all data is received. This further reduces overhead. 
 

@@ -1,5 +1,5 @@
 % reset abbrevations
-\acresetall
+\acused{wse}
 \chapter{Introduction}
 % Der job der Einleitung: die contributions verstehen.
 % muss nicht mehr als 2 oder 3 seiten sein.
@@ -15,7 +15,7 @@ In October 2021, Cerebras released Version 0.2.0 of their SDK, allowing the gene
 This made the \ac{wse} an interesting target for stencil codes and has been used to dramatically accelerate different 3D stencil applications using 7- or 25-point stencils for solving the heat equation or 3D wave equation \cite{jacquelin2022scalable,rocki2020fast,woo2022disruptive,sai2024matrix}.
 All of these approaches map x and y dimension to the x and y dimension of the \ac{wse}, while mapping the z dimension to the memory within each core.
 
-2D stencils have only been attempted once and without using \ac{csl}. Instead, convolutional filters in TensorFlow were used to define stencils that could run on the \ac{wse}\cite{brown2022tensorflow}. In this work, it was shown that, although utilizing the \ac{wse} in a suboptimal setting, it could outperform four Nvidia V100s by a factor of 2.5. While 3D stencil implementations could also be used for solving 2D stencil problems by setting one of the dimensions to one, this is a very inefficient way of using the \ac{wse}.
+2D stencils have only been attempted once and without using \ac{csl}. Instead, convolutional filters in TensorFlow were used to define stencils that could run on the \ac{wse} \cite{brown2022tensorflow}. In this work, it was shown that, although utilizing the \ac{wse} in a suboptimal setting, it could outperform four Nvidia V100s by a factor of 2.5. While 3D stencil implementations could also be used for solving 2D stencil problems by setting one of the dimensions to one, this is a very inefficient way of using the \ac{wse}.
 
 This work presents a custom implementation for 2D stencils on the \ac{wse} by tiling the grid along the x and y dimensions and mapping these tiles to the individual cores.
 % Unlike tiling used to optimize stencils on traditional \ac{hpc} hardware, where the work is split up while the whole problem resides in one 
