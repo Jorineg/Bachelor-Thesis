@@ -36,5 +36,5 @@ Although multi-hop communication could be implemented to allow a large radius wh
 The Neumann boundary condition uses information about the derivative of the solution at the border regions to improve the solution for certain stencils, and could also be an interesting extension. A periodic boundary condition would present a major challenge on the \ac{wse} as it would involve communication of \acp{pe} with a high spatial distance. 
 
 Similar to the research done for other \ac{hpc} architectures, we expect automated code generation tools or compiler pipelines targeting the \ac{wse}, to become more important.
-Existing approaches for 3D stencils\cite{sai2024automated} could be extended to also support optimized solutions for 2D stencils and automatically choosing parameters to result in highest throughput kernels.
+Existing approaches for 3D stencils \cite{sai2024automated} could be extended to also support optimized solutions for 2D stencils and automatically choosing parameters to result in highest throughput kernels.
 Integrating these approaches into existing stencil \acp{dsl} to support the \ac{wse} as one of multiple possible backends would be a valuable contribution to make the \ac{wse} a more versatile tool for stencil computations.

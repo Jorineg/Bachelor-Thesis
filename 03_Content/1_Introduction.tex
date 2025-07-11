@@ -1,6 +1,5 @@
 \chapter{Introduction}
 % reset abbrevations
-\acused{wse}
 % Der job der Einleitung: die contributions verstehen.
 % muss nicht mehr als 2 oder 3 seiten sein.
 Stencil computations form the computational heart of many scientific simulations across disciplines, from modeling heat dissipation in semiconductor chips to simulating complex seismic waves.
@@ -9,7 +8,7 @@ The low arithmetic intensity makes these types of problems difficult to run effi
 Optimizing it typically involves tiling the problem at different levels to utilize the cache hierarchy effectively.
 A special challenge represent high-order stencils as their update relies on cells that are further away, which makes tiling more difficult.
 
-Cerebras developed the \ac{wse}, a new kind of hardware that consists of almost a million cores, all residing on a single chip.
+Cerebras developed the \acs{wse}, a new kind of hardware that consists of almost a million cores, all residing on a single chip.
 All cores have their own, local memory and are connected via a 2D fabric mesh, connecting every core with its four direct neighbors.
 This architecture is particularly well-suited for stencil computations because it eliminates the memory bandwidth bottleneck that typically limits stencil performance on traditional hardware, while the regular 2D mesh topology naturally matches the communication patterns of stencil operations.
 In October 2021, Cerebras released Version 0.2.0 of their SDK, allowing the general public to implement custom kernels for the \ac{wse} using their own language \ac{csl}. 
