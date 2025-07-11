@@ -90,17 +90,17 @@
 \begin{spacing}{1}				% one-line spacing here
 	\acuseall				% mark all acronyms as used for short forms in TOC
 	\tableofcontents			% table of contents
-	\acresetall				% reset acronym counters so they expand on first use in main text
 	\clearpage
 	\pagestyle{scrheadings}		% set page style with header and footer information 
 	\pagenumbering{roman}		% small roman page numbers
 	\listoffigures 				% make list of figures
-	\listoftables 				% make list of tables
-	\listofalgorithms 			% make list of algorithms
-	\lstlistoflistings			% make list of codes
+	% \listoftables 				% make list of tables
+	% \listofalgorithms 			% make list of algorithms
+	% \lstlistoflistings			% make list of codes
 	\include{02_Prematter/g_Nomenclature} % include all symbols in nomenclature
 	\printnomenclature 			% make list of symbols
 	\clearpage
+	\acresetall				% reset acronym counters so they expand on first use in main text
 	\input{02_Prematter/h_Abbreviations}
 	% \listoftodos				% make list of todos
 	% \todototoc					% add list of todos to list of contents	
