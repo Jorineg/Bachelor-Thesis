@@ -179,7 +179,7 @@ ax.set_title('WSE2 vs WSE3 Performance: Percentage of Peak FLOPS vs Tile Size', 
 # Create custom legends
 legend_elements_params = [
     Line2D([0], [0], color=light_red, lw=2, 
-           label='Radius 1 (non-tiled)')
+           label='Radius 1 (single-cell)')
 ]
 legend_elements_params.extend([
     Line2D([0], [0], color=color_map[radius], lw=2, 

@@ -48,7 +48,7 @@ ax.set_xticklabels([])
 ax.set_yticklabels([])
 
 # Add title with the function
-plt.title('Coloring Pattern for Radius-1 Non-Tiled Stencil\nf(x,y) = (x + 2y) mod 6', fontsize=14, fontweight='bold')
+plt.title('Coloring Pattern for Single-cell Stencil\nf(x,y) = (x + 2y) mod 6', fontsize=14, fontweight='bold')
 
 # Create legend with numbers
 legend_elements = [patches.Patch(facecolor=colors[i], edgecolor='black', label=str(i)) 

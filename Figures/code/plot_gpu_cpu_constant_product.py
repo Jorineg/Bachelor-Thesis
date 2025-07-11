@@ -318,7 +318,7 @@ ax.set_ylabel(ylabel)
 # Move legends
 legend_elements_radius = []
 for radius in all_radii:
-    legend_elements_radius.append(Line2D([0], [0], color=color_map[radius], lw=2, label=f'Radius {radius if radius != 0 else "1 (non-tiled)"}'))
+    legend_elements_radius.append(Line2D([0], [0], color=color_map[radius], lw=2, label=f'Radius {radius if radius != 0 else "1 (single-cell)"}'))
 
 # Position legends based on metric type
 if METRIC_TYPE == "gcells":

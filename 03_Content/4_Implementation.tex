@@ -20,7 +20,7 @@ Although the experiments throughout this thesis utilize symmetric, constant coef
 
 The single cell implementation, as well as the r1-optimized tiled version, leverage optimizations that rely on symmetric coefficients. This restriction enables significant performance gains for this specific use case. In contrast, the general tiled implementation could handle asymmetric coefficients with minimal modifications without increasing the number of computational cycles.
 
-Regarding spatially varying coefficients, all implementations could be adapted to handle them without performance degradation. The tiled implementations are already designed for each PE to receive its own set of coefficients from the host, meaning a shift to variable coefficients would require no changes to the CSL kernel. The non-tiled implementation currently uses fixed weights but could support variable coefficients with a minor modification which would also incur no runtime overhead.
+Regarding spatially varying coefficients, all implementations could be adapted to handle them without performance degradation. The tiled implementations are already designed for each PE to receive its own set of coefficients from the host, meaning a shift to variable coefficients would require no changes to the CSL kernel. The single-cell implementation uses fixed weights but could support variable coefficients with a minor modification which would also incur no runtime overhead.
 
 The tiled implementation consists of a top-level time-step loop comprising separate data exchange and compute steps in each iteration, while the single-cell implementation interleaves the two steps.
 
@@ -51,12 +51,12 @@ and visualized in \autoref{fig:r1_stencil_coloring}.
 \begin{figure}
     \centering
     \includegraphics[width=0.5\linewidth]{r1-stencil-coloring.png}
-    \caption{Visualization of the coloring pattern for radius-1 non-tiled stencil. Each color represents a distinct routing color (0-5) used for conflict-free communication between \acp{pe}. The numbers in each cell show the color index computed by $f(x,y) = (x + 2y) \bmod 6$}
+    \caption{Visualization of the coloring pattern for the single-cell stencil. Each color represents a distinct routing color (0-5) used for conflict-free communication between \acp{pe}. The numbers in each cell show the color index computed by $f(x,y) = (x + 2y) \bmod 6$}
     \label{fig:r1_stencil_coloring}
 \end{figure}
 
 \subsection{\ac{pe} Program}
-The implementation for the radius-1, non-tiled case is relatively simple.
+The implementation for the single-cell implementation is relatively straight forward.
 Although only single elements are processed at a time, \acp{dsd} are needed for communication and for performance reasons explicit \ac{dsr} assignment is employed, decreasing the number of cycles per iteration significantly.  
 Further, the center multiplication is placed at the beginning of each iteration in a way that it overlaps with the communication delay and does not need an additional cycle.
 Because only one fp32 element is received from and send to each neighbour, input and output queues never fill up completely and synchronous \ac{dsd} operations can be used instead of asynchronous operations that add significant overhead.
@@ -98,7 +98,7 @@ Unfortunately, this does not work on WSE-3, since it allows at most one fabric \
 
 \begin{table}[h]
     \centering
-    \caption{Operations for one grid point and iteration in the radius-1, non-tiled implementation}
+    \caption{Operations for one grid point and iteration in the single-cell implementation}
     \label{tab:r1_non_tiled_operations}
     \begin{tabular}{@{}cccc@{}}
         \toprule
@@ -147,7 +147,7 @@ Where $f$ determines the color used to send data east and $1-f$ is used to recei
 \begin{figure}
     \centering
     \includegraphics[width=0.7\linewidth]{stencil_static.png}
-    \caption{Visualization of the computational steps for one iteration of the tiled algorithm with radius $r=1$ and tile size $5\times 3$. Selected regions in the buffer are each multiplied with a weight and added to the accumulator.}
+    \caption{Visualization of the computational steps for one iteration of the tiled implementation with radius $r=1$ and tile size $5\times 3$. Selected regions in the buffer are each multiplied with a weight and added to the accumulator.}
     \label{fig:stencil_algorithm_animation}
 \end{figure}
 
@@ -205,7 +205,7 @@ If only \texttt{@fmacs} instructions were used, the accumulator would have to be
         $accumulator \gets accumulator + weights[i] \cdot buffer\_center\_dsd_{RIGHT,i}$\;
     }
     $buffer\_center\_dsd \gets buffer\_center\_dsd + weights[0] \cdot accumulator$\;
-    \caption{Tiled algorithm code}\label{alg:tiled_algorithm}
+    \caption{Code excerpt for the tiled implementation}\label{alg:tiled_algorithm}
 \end{algorithm}
 
 The static border is implemented by using a ring of \acp{pe} that only send and receive data from their neighbors and do not participate in the computation. If $r<t_w$ or $r<t_h$ the border \acp{pe} values are padded with zeros to fill their buffer. We refer to the \acp{pe} that only send and receive data from their neighbors as border \acp{pe}, the ones that participate in the computation as inner \acp{pe} and the set of both of these as active \acp{pe}.
@@ -235,7 +235,7 @@ The static border is implemented by using a ring of \acp{pe} that only send and 
 
 \subsection{r1-optimized version}
 
-As a special case of the tiled algorithm, the problem with radius one was further optimized by using \texttt{mem1d\_dsd}s instead of \texttt{mem4d\_dsd}s for the halo regions where the neighbors data is received as well as the data to send. Furthermore the shifted \acp{dsd} are precomputed and all \acp{dsd} are explicitly assigned to distinct \acp{dsr}. There are enough \acp{dsr} available so that each \ac{dsr} is used for at most one \ac{dsd}. This allows for a significant reduction in the number of cycles per iteration, since loading the \acp{dsd} into \acp{dsr} only needs to be done once, independent of the number of iterations. We still find that the \acp{dsd} used for reading the parts of the buffer that are send to the neighbors and the ones describing the halo regions for receiving need to be reloaded to the \acp{dsr} for each iteration. The load to \ac{dsr} for these \acp{dsd} acts as a kind of reset and if not done, it leads to buffer overflows. The documentation doesn't specify this requirement and interestingly, it is not necessary for all \acp{dsd}. 
+As a special case of the tiled implementation, the problem with radius one was further optimized by using \texttt{mem1d\_dsd}s instead of \texttt{mem4d\_dsd}s for the halo regions where the neighbors data is received as well as the data to send. Furthermore the shifted \acp{dsd} are precomputed and all \acp{dsd} are explicitly assigned to distinct \acp{dsr}. There are enough \acp{dsr} available so that each \ac{dsr} is used for at most one \ac{dsd}. This allows for a significant reduction in the number of cycles per iteration, since loading the \acp{dsd} into \acp{dsr} only needs to be done once, independent of the number of iterations. We still find that the \acp{dsd} used for reading the parts of the buffer that are send to the neighbors and the ones describing the halo regions for receiving need to be reloaded to the \acp{dsr} for each iteration. The load to \ac{dsr} for these \acp{dsd} acts as a kind of reset and if not done, it leads to buffer overflows. The documentation doesn't specify this requirement and interestingly, it is not necessary for all \acp{dsd}. 
 As another optimization, \texttt{@fadds} are used instead of \texttt{@fmacs} and the multiplication is handled separately. This reduces the flop number from $9$ to $6$ per element and results in a performance improvement because the simd width for \texttt{@fadds} is 2/4 on wse-2/3 while it is only 1 for \texttt{@fmacs}. Note that the shifted \acp{dsd} $buffer\_center\_dsd_{DIR,i}$ in the general version need to be created for each iteration of the loop while pre-computed \acp{dsd} are used in this optimized version.
 Furthermore we find that on \ac{wse}-3 for radius one and tile sizes greater than four, we can rely on explicitly set task priorities instead of counters to ensure the computation task only starts if all data is receive. This further reduces overhead. 
 
@@ -251,7 +251,7 @@ For all experiments in this work, the r1-optimized version is used whenever appl
     $accumulator \gets accumulator + buffer\_center\_dsd_{LEFT,1}$\;
     $accumulator \gets accumulator + buffer\_center\_dsd_{RIGHT,1}$\;
     $buffer\_center\_dsd \gets buffer\_center\_dsd + accumulator \cdot weights[1]$\;
-    \caption{Radius-1, tiled algorithm code}\label{alg:r1_tiled_algorithm}
+    \caption{Code excerpt for the r1-optimized version of the tiled implementation}\label{alg:r1_tiled_algorithm}
 \end{algorithm}
 
 \begin{table}[h]

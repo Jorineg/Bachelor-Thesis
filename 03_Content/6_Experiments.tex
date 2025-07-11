@@ -1,6 +1,6 @@
 \chapter{Experiments}
 \label{sec:experiments}
-We ran several experiments to evaluate the performance characteristics of the implemented algorithm, compare its performance on the \ac{wse} to highly optimized implementations on traditional \ac{hpc}-Arcitectures (\ac{cpu}, \ac{gpu}) and assess the possibility to further optimize the algorithm.
+We ran several experiments to evaluate the performance characteristics of the implemented algorithm, compare its performance on the \ac{wse} to highly optimized implementations on traditional \ac{hpc}-Arcitectures (\ac{cpu}, \ac{gpu}) and assess the possibility to further optimize our implementations.
 
 \section{Methodology}
 All experiments for the Cerebras WSE were conducted using the cycle-accurate simulator provided in the Cerebras SDK (v1.3.0).
@@ -10,7 +10,7 @@ We extrapolate to more \acp{pe} by assuming perfect weak scaling, meaning that t
 This is assumption is supported by two key pieces of evidence: The results from \citeauthor{jacquelin2022scalable} \cite{jacquelin2022scalable} who achieve near-perfect weak scaling for their implementation of a 3d stencil on a \ac{wse}-2 system.
 Furthermore, we run our own weak scaling experiments on the simulator and find that the cycle count is almost constant for the tested number of \acp{pe} \autoref{sec:weak_scaling}.
 
-We measure the runtime of our algorithm by calculating it from the recoreded number of clock cycles used per iteration and the clock speed of the \ac{wse}. This is the standard methodology for recording performance data on Cerebras hardware \cite{jacquelin2022scalable}.
+We measure the runtime of our implementations by calculating it from the recoreded number of clock cycles used per iteration and the clock speed of the \ac{wse}. This is the standard methodology for recording performance data on Cerebras hardware \cite{jacquelin2022scalable}.
 Specifically, we ran every experiment for four iterations and took the average cycle count of the third and fourth iteration as we found the cycle count could be slightly inaccurate in the first two iterations \autoref{sec:stability_of_cycle_count_per_iteration}.
 
 \section{Foundational Characteristics on the WSE}
@@ -28,22 +28,22 @@ This can be confirmed by the results of this experiment in the simulator with up
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
         \includegraphics[width=\textwidth]{pe_overhead_non_tiled.png}
-        \caption{Non-tiled algorithm}
+        \caption{Single-cell implementation}
         \label{fig:pe_overhead_non_tiled}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
         \includegraphics[width=\textwidth]{tiled_pe_stability.png}
-        \caption{Tiled algorithm}
+        \caption{Tiled implementation}
         \label{fig:tiled_pe_stability}
     \end{subfigure}
-    \caption{Cycle count per iteration versus the number of active PEs for (a) the non-tiled algorithm and (b) the tiled algorithm. For the non-tiled implementation, the performance is stable for grids larger than 4x4, with the 3x3 grid showing a notably lower cycle count. The tiled implementation demonstrates a relatively stable cycle count for each configuration, independent of the number of active PEs}
+    \caption{Cycle count per iteration versus the number of active PEs for (a) the single-cell and (b) the tiled implementation. For the single-cell implementation, the performance is stable for grids larger than 4x4, with the 3x3 grid showing a notably lower cycle count. The tiled implementation demonstrates a relatively stable cycle count for each configuration, independent of the number of active PEs}
     \label{fig:pe_overhead}
 \end{figure}
 
-As shown in \autoref{fig:pe_overhead_non_tiled}, the performance of the non-tiled algorithm scales almost perfectly, with the cycle count remaining constant with minimal fluctuations regardless of the grid size. The one exception is the \numproduct{3 x 3} grid, which is significantly faster. We hypothesize this is an artifact of the experimental setup where only the single, inner \ac{pe} is performing computation and does not need to synchronize with other computing neighbors, effectively eliminating any communication latency.
-The tiled algorithm doesn't show this behavior and fluctuates by not more than about 1.3\% on the \ac{wse}-3 across all tested grid sizes.
+As shown in \autoref{fig:pe_overhead_non_tiled}, the performance of the single-cell implementation scales almost perfectly, with the cycle count remaining constant with minimal fluctuations regardless of the grid size. The one exception is the \numproduct{3 x 3} grid, which is significantly faster. We hypothesize this is an artifact of the experimental setup where only the single, inner \ac{pe} is performing computation and does not need to synchronize with other computing neighbors, effectively eliminating any communication latency.
+The tiled implementation doesn't show this behavior and fluctuates by not more than about 1.3\% on the \ac{wse}-3 across all tested grid sizes.
 For all subsequent experiments, we ensure at least \numproduct{5 x 5} active \acp{pe}, which results in at least \numproduct{3 x 3} \acp{pe} inner \acp{pe}, to avoid possible effects as obererved for the single cell implementation with a \numproduct{3 x 3} grid. 
 
 \subsection{Iteration Stability}
@@ -58,17 +58,17 @@ Because of the higher flucuations in cycle count in the first two iterations, we
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
         \includegraphics[width=\textwidth]{non_tiled_iteration_stability.png}
-        \caption{Non-tiled algorithm}
+        \caption{Single-cell implementation}
         \label{fig:non_tiled_iteration_stability}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
         \includegraphics[width=\textwidth]{tiled_iteration_stability.png}
-        \caption{Tiled algorithm}
+        \caption{Tiled implementation}
         \label{fig:tiled_iteration_stability}
     \end{subfigure}
-    \caption{Cycle count per iteration for non-tiled and tiled algorithm}
+    \caption{Cycle count per iteration for single-cell and tiled implementations}
     \label{fig:iteration_stability}
 \end{figure}
 
@@ -103,7 +103,7 @@ The single-cell implementation is a heavily optimized implementation for the spe
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.7\linewidth]{algo_comparison.png}
-    \caption{Performance comparison of the specialized non-tiled and the r1-optimized tiled implementations for a radius-1 stencil. The specialized, non-tiled implementation achievieves an 8x speedup on \ac{wse}-2 and a 7x speedup on \ac{wse}-3.}
+    \caption{Performance comparison of the specialized single-cell and the r1-optimized tiled implementations for a radius-1 stencil. The specialized, single-cell implementation achieves an 8x speedup on \ac{wse}-2 and a 7x speedup on \ac{wse}-3.}
     \label{fig:algo_comparison}
 \end{figure}
 
@@ -152,29 +152,13 @@ Further analyzing the \ac{wse}-3s performance, we find that the throughput is li
 
 The \ac{wse}-3 implementation outperforms the \ac{cpu} and \ac{gpu} for all tested grid sizes and radii with the most significant increase in throughput for the largest grid size of \num{1e9} and radius \num{1} with a factor of \num{12000} compared to the \ac{gpu} and \num{48000} compared to the \ac{cpu}. For these parameters our implementation reaches a throughput of \qty{165}{\tera cells/s}. Because the throughput for the stencil is independent from the radius on the \ac{gpu}, but not on the \ac{wse}-3, the performance increase from \ac{wse}-3 to \ac{gpu} for the same grid size and radius \num{6} is significantly smaller at \num{1500}.
 
-% To evaluate the performance advantage of the specialized non-tiled algorithm, we compare it directly with highly optimized implementations on traditional \ac{hpc} architectures using grid sizes that match the \ac{wse} dimensions. This comparison uses the actual \ac{wse} grid dimensions as the problem size, which represents the maximum grid size achievable with the non-tiled algorithm.
-
-% For \ac{wse}-2 with dimensions \numproduct{750 x 994} and \ac{wse}-3 with dimensions \numproduct{762 x 1176}, we measured the performance of the same radius-1 stencil on all three architectures.
-
-% \begin{figure}[h]
-%     \centering
-%     \includegraphics[width=0.7\linewidth]{cpu_gpu_cerebras_non_tiled_comparison.png}
-%     \caption{Performance comparison of the non-tiled Cerebras implementation against traditional \ac{hpc} architectures for radius-1 stencils. Results show iterations per second for grid sizes matching the \ac{wse} dimensions. The non-tiled algorithm achieves speedups of over 1000x compared to \ac{gpu} and over 12,000x compared to \ac{cpu}.}
-%     \label{fig:cpu_gpu_cerebras_non_tiled_comparison}
-% \end{figure}
-
-% The results demonstrate the exceptional performance of the non-tiled algorithm. For the \ac{wse}-2 grid size (\numproduct{750 x 994}), the Cerebras implementation achieves \num{68750000} iterations per second, compared to \num{65707} for the \ac{gpu}. This represents a speedup of 1046x.
-% For the \ac{wse}-3 grid size (\numproduct{762 x 1176}), the Cerebras implementation achieves \num{47826087} iterations per second, compared to \num{62743} for the \ac{gpu} with a speedup of 762x.
-
-% The performance advantage stems from the direct mapping of grid elements to \acp{pe}, enabling defacto in-memory computation with a memory that is significantly faster than the \ac{gpu} memory. While this approach is limited to grid sizes not exceeding the \ac{wse} dimensions, it provides unparalleled performance for problems that fit within these constraints.
-
 \section{Achieved Computational Efficiency}
 We already discussed how close the throughput of our implementation is to the throughput of the performance model.
 Nonetheless how close an algorithm is to specific hardware peak performance is also an important metric as it is typically used to evaluate the performance of algorithms on different kinds of harware.
 
 The achieved computational efficiency can be calculated from the cycle counts measured in the earlier experiments, the total number of \acp{flop} executed in these experiments and the maximum number of \acp{flop} that can be executed per cycle and \ac{pe} on the \ac{wse}.
 
-As described in \autoref{sec:implementation}, the non-tiled implementation and the r1-optimized implementation has \num{6} \acp{flop} per cell, iteration and \ac{pe} while the general tiled implementation has $8r+1$ \acp{flop} per cell, iteration and \ac{pe}. From the tiled sizes used in the different experiments, we first calculate the total number of \acp{flop} ($F_{total}$) per iteration and \ac{pe} as:
+As described in \autoref{sec:implementation}, the single-cell implementation and the r1-optimized implementation have \num{6} \acp{flop} per cell, iteration and \ac{pe} while the general tiled implementation has $8r+1$ \acp{flop} per cell, iteration and \ac{pe}. From the tiled sizes used in the different experiments, we first calculate the total number of \acp{flop} ($F_{total}$) per iteration and \ac{pe} as:
 \begin{equation}
     F_{total} = t_w t_h (8r+1)
 \end{equation}

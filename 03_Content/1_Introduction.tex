@@ -19,25 +19,7 @@ This work presents a custom implementation for 2D stencils on the \ac{wse} by ti
 % Unlike tiling used to optimize stencils on traditional \ac{hpc} hardware, where the work is split up while the whole problem resides in one 
 This dramatically changes the data exchange pattern in a way that reduces communication between the cores relative to the computation.
 Unlike the existing 3D implementations, where high-order stencils always come with communication across multiple cores, tiling the grid for 2D stencils allows high-order stencils with communication patterns that only use direct neighbors, which makes it potentially very efficient.
-% linear 2d star-shaped stencils. 
 
-% - motivation: why are stencil coputations important 
-% - problem: why is efficient implementation on cerebres difficult, what are the chances?
-% challenges:
-% - Cerebras uses \ac{csl} for the \ac{wse} chip. no compiler for higher level languages like stencil dsls to \ac{csl}
-% - also: prgoramming paradigm is vastly differnet. no shared memory. no cache. each \ac{pe} completely indendent from others.
-% -> needs hand crafted kernel/prgramm/solution (?) for every problem
-
-% difficulties:
-% - hardware new and limited access
-% - language new, not widely adopted, very limited documentation
-
-% We identify following research questions:
-% \begin{itemize}
-%     \item How can 2D star-shaped stencils be mapped efficiently to the Cerebras \ac{wse}-Architecture and what are the key design choices?
-%     \item How does the performance of a specialized (radius 1, non-tiled) implementation scale compared to a generalized (tiled, variable radius) implementation on the \ac{wse}?
-%     \item How does the performance of the Cerepbras-Implentation position itself compared to highly optimized implementations on traditional \ac{hpc}-Arcitectures (\ac{cpu}, \ac{gpu})? 
-% \end{itemize}
 The main contributions of this thesis are:
 \begin{itemize}
     \item Two different implementations for linear two-dimensional star-shaped stencils on the Cerebras \ac{wse}, a single cell implementation optimized for latency, and a tiled implementation optimized for throughput and larger grid sizes (\autoref{sec:implementation})

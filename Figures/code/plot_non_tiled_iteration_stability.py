@@ -27,7 +27,7 @@ plt.plot(iterations_10x10, wse2_10x10, 'o-', color=green, linestyle='-')
 plt.plot(iterations_10x10, wse3_10x10, 'o-', color=green, linestyle='--')
 
 # Add titles and labels
-plt.title('Stencil Iteration Benchmark Results (Non-Tiled)')
+plt.title('Stencil Iteration Benchmark Results (Single-cell)')
 plt.xlabel('Iteration')
 plt.ylabel('Cycles for Iteration')
 

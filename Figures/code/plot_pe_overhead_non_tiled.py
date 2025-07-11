@@ -18,7 +18,7 @@ ax.plot(num_elements, wse2_cycles, 'o-', color=blue, label='WSE2')
 ax.plot(num_elements, wse3_cycles, 'o--', color=blue, label='WSE3')
 
 # Add titles and labels
-ax.set_title('Cycle Count vs. Grid Size for Non-Tiled Stencil')
+ax.set_title('Cycle Count vs. Grid Size for Single-cell Stencil')
 ax.set_xlabel('Number of active PEs')
 ax.set_ylabel('Cycles per Iteration')
 ax.set_xscale('log')

@@ -103,7 +103,7 @@ fig, ax = plt.subplots(figsize=(10, 6))
 # Create grouped bars
 bars1 = ax.bar(x - width, cpu_data, width, label='CPU (AMD EPYC 9554)', color=light_blue, alpha=0.8)
 bars2 = ax.bar(x, gpu_data, width, label='GPU (NVIDIA H100)', color=light_green, alpha=0.8)
-bars3 = ax.bar(x + width, cerebras_data, width, label='Cerebras WSE (Non-Tiled)', color=light_red, alpha=0.8)
+bars3 = ax.bar(x + width, cerebras_data, width, label='Cerebras WSE (Single-cell)', color=light_red, alpha=0.8)
 
 # Custom formatting function for scientific notation (same as other plot)
 def custom_format(y):
@@ -118,7 +118,7 @@ ax.bar_label(bars3, padding=3, fmt=custom_format, fontsize=12)
 
 # Customize plot
 ax.set_ylabel('Iterations per Second (log scale)', fontsize=12, fontweight='bold')
-ax.set_title('Performance Comparison: CPU, GPU, and Cerebras Non-Tiled Implementation\nfor Radius-1 Stencil', 
+ax.set_title('Performance Comparison: CPU, GPU, and Cerebras Single-cell Implementation\nfor Radius-1 Stencil', 
              fontsize=14, fontweight='bold', pad=20)
 ax.set_xticks(x)
 ax.set_xticklabels(labels, fontsize=11)
