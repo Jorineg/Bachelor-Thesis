@@ -8,7 +8,7 @@ As a starting point for calculating the possible throughput, we are interested i
 
 \begin{equation}
     \label{eq:c_ideal}
-    C_{ideal} = max\left(C_{comp}, C_{comm}\right)
+    C_{ideal} = \max\left(C_{comp}, C_{comm}\right)
 \end{equation}
 
 % This model estimates the theoretical maximum performance of tiled 2D star-shaped stencils on the \ac{wse} in general.
@@ -61,11 +61,11 @@ Putting it all together, we can use the cycle count, tile size, and clock freque
     \label{eq:throughput_ideal}
     \begin{aligned}
         T_{ideal} &= \frac{P_h P_w f_{clk} t_w t_h}{C_{ideal}} \\[1ex]
-        &= \frac{P_h P_w f_{clk} t_w t_h}{max\left(C_{comp}, C_{comm}\right)}
+        &= \frac{P_h P_w f_{clk} t_w t_h}{\max\left(C_{comp}, C_{comm}\right)}
     \end{aligned}
 \end{equation}
 
-Analyzing the term $max\left(C_{comp}, C_{comm}\right)$, we find that for all cases with a tile size greater than or equal to \numproduct{2 x 2}, the computation term exceeds the communication term, simplifying the throughput equation for the general implementation to:
+Analyzing the term $\max\left(C_{comp}, C_{comm}\right)$, we find that for all cases with a tile size greater than or equal to \numproduct{2 x 2}, the computation term exceeds the communication term, simplifying the throughput equation for the general implementation to:
 
 \begin{equation}
     \label{eq:throughput_ideal_simplified}

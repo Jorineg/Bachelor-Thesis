@@ -219,16 +219,16 @@ If only \texttt{@fmacs} instructions were used, the accumulator would have to be
         var right_shift_dsd = @increment_dsd_offset(buffer_center_dsd, i, f32);
   
         if(i==1){
-          // overwrite own_values in first iteration
-          @fmuls(own_values_dsd, up_shift_dsd, weight);
+          // overwrite accumulator in first iteration
+          @fmuls(accumulator_dsd, up_shift_dsd, weight);
         }else{
-          @fmacs(own_values_dsd, own_values_dsd, up_shift_dsd, weight);
+          @fmacs(accumulator_dsd, accumulator_dsd, up_shift_dsd, weight);
         }
-        @fmacs(own_values_dsd, own_values_dsd, down_shift_dsd, weight);
-        @fmacs(own_values_dsd, own_values_dsd, left_shift_dsd, weight);
-        @fmacs(own_values_dsd, own_values_dsd, right_shift_dsd, weight);
+        @fmacs(accumulator_dsd, accumulator_dsd, down_shift_dsd, weight);
+        @fmacs(accumulator_dsd, accumulator_dsd, left_shift_dsd, weight);
+        @fmacs(accumulator_dsd, accumulator_dsd, right_shift_dsd, weight);
       }
-      @fmacs(buffer_center_dsd, own_values_dsd, buffer_center_dsd, weights[0]);
+      @fmacs(buffer_center_dsd, accumulator_dsd, buffer_center_dsd, weights[0]);
 \end{lstlisting}
 
 The static border at the edge of the compute grid is implemented by using a ring of read-only \acp{pe} that only send data to their neighbors and do not participate in the computation. If $r<t_w$ or $r<t_h$, the border \acp{pe} values are padded with zeros to fill their buffer. We refer to the \acp{pe} that only send data to their neighbors as border \acp{pe}, the ones that participate in the computation as inner \acp{pe}, and the set of both of these as active \acp{pe}.
