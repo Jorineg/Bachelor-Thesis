@@ -306,7 +306,7 @@ ax.set_xlabel('Grid Size (Width × Height)')
 if METRIC_TYPE == "ips":
     ylabel = 'Iterations per second'
 elif METRIC_TYPE == "gcells":
-    ylabel = 'Giga grid cells per second'
+    ylabel = 'Throughput (GCells/s)'
 else:  # default to "time"
     ylabel = 'Time (ms) for constant work (grid size × iterations = 1e10)'
 ax.set_ylabel(ylabel)
