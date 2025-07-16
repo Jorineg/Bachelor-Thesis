@@ -36,9 +36,9 @@ This specialization allows a heavily optimized implementation, but restricts the
 The computation for each element can be described as follows:
 \begin{equation}
     \label{eq:stencil_computation}
-    v^{'} = w_0 \cdot v + w_1 \cdot (v_{north} + v_{east} + v_{south} + v_{west})
+    v^{'} = w_0 \cdot v + w_1 \cdot (v_{\mathrm{north}} + v_{\mathrm{east}} + v_{\mathrm{south}} + v_{\mathrm{west}})
 \end{equation}
-Where $v$ is the old value of the element, $v_{north}, v_{east}, v_{south}, v_{west}$ are the values of the four neighbors, $w_0, w_1$ are the stencil coefficients and $v^{'}$ is the new value of the element.
+Where $v$ is the old value of the element, $v_{\mathrm{north}}, v_{\mathrm{east}}, v_{\mathrm{south}}, v_{\mathrm{west}}$ are the values of the four neighbors, $w_0, w_1$ are the stencil coefficients and $v^{'}$ is the new value of the element.
 
 \subsection{Data Exchange and Routing Configuration}
 Each \ac{pe} sends data to, and receives data from, its four direct neighboring \acp{pe}. Notably, it sends the same data to the four neighbors. This allows for increased communication speed by using the built-in broadcasting functionality of the router. We assign each \ac{pe} a color and define a route so that the router receives data on this color from the \ac{ce} and sends it to the four neighboring routers, which are configured to forward the data to their respective \acp{ce}. Because only one route can be defined per color and router, we use a pattern containing six distinct colors to map the grid.
@@ -117,9 +117,9 @@ Unfortunately, this does not work on the \ac{wse}-3, since it allows at most one
 For a radius greater than or equal to one, the computation can be expressed as follows:
 \begin{equation}
     \label{eq:stencil_computation_tiled}
-    v^{'} = w_0 \cdot v + \sum_{i=1}^{r} w_i \cdot (v_{north,i} + v_{east,i} + v_{south,i} + v_{west,i})
+    v^{'} = w_0 \cdot v + \sum_{i=1}^{r} w_i \cdot (v_{\mathrm{north},i} + v_{\mathrm{east},i} + v_{\mathrm{south},i} + v_{\mathrm{west},i})
 \end{equation}
-Where $v$ is the old value of the element, $v_{north,i}, v_{east,i}, v_{south,i}, v_{west,i}$ are the values of the four neighbors at distance $i$ from the center, and $w_0, w_1, \dots, w_r$ are the symmetric stencil coefficients.
+Where $v$ is the old value of the element, $v_{\mathrm{north},i}, v_{\mathrm{east},i}, v_{\mathrm{south},i}, v_{\mathrm{west},i}$ are the values of the four neighbors at distance $i$ from the center, and $w_0, w_1, \dots, w_r$ are the symmetric stencil coefficients.
 
 \subsection{Data Exchange and Routing Configuration}
 \begin{figure}

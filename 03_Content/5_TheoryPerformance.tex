@@ -2,32 +2,32 @@
 \label{sec:theory_performance}
 To understand the performance characteristics and limitations of our tiled stencil implementations on the \ac{wse}-3, we develop a simplified performance model for the maximum possible throughput per \ac{pe}. This will help us understand if the problem is compute-bound or communication-bound. It also allows us to see how close our implementation is to the theoretical machine limits.
 
-The stencil performance is limited by two main factors: the time it takes for a \ac{pe} to receive all data needed for the computation of one iteration ($C_{comm}$) and the time it takes to perform the computation itself ($C_{comp}$). Unlike traditional hardware, the memory on the \ac{pe} is never a bottleneck, as it is designed with a bandwidth and latency to provide data at the same speed the \ac{ce} can process it.
+The stencil performance is limited by two main factors: the time it takes for a \ac{pe} to receive all data needed for the computation of one iteration ($C_{\mathrm{comm}}$) and the time it takes to perform the computation itself ($C_{\mathrm{comp}}$). Unlike traditional hardware, the memory on the \ac{pe} is never a bottleneck, as it is designed with a bandwidth and latency to provide data at the same speed the \ac{ce} can process it.
 
-As a starting point for calculating the possible throughput, we are interested in the number of cycles needed for one iteration. We model this number in the context of two different scenarios. First, we describe an optimistic theoretical limit $C_{ideal}$ that assumes perfect overlap between communication and computation. That means communication and computation can be done in parallel, and the cycle count is defined by whatever takes longer.
+As a starting point for calculating the possible throughput, we are interested in the number of cycles needed for one iteration. We model this number in the context of two different scenarios. First, we describe an optimistic theoretical limit $C_{\mathrm{ideal}}$ that assumes perfect overlap between communication and computation. That means communication and computation can be done in parallel, and the cycle count is defined by whatever takes longer.
 
 \begin{equation}
     \label{eq:c_ideal}
-    C_{ideal} = \max\left(C_{comp}, C_{comm}\right)
+    C_{\mathrm{ideal}} = \max\left(C_{\mathrm{comp}}, C_{\mathrm{comm}}\right)
 \end{equation}
 
 % This model estimates the theoretical maximum performance of tiled 2D star-shaped stencils on the \ac{wse} in general.
 
-Our implementation, however, does not overlap communication and computation. The two are implemented as distinct tasks and are executed sequentially. To better predict the performance of our implementation, we therefore define a second scenario $C_{sequential}$ where the cycle count for one iteration is defined as the sum of the communication and computation.
+Our implementation, however, does not overlap communication and computation. The two are implemented as distinct tasks and are executed sequentially. To better predict the performance of our implementation, we therefore define a second scenario $C_{\mathrm{sequential}}$ where the cycle count for one iteration is defined as the sum of the communication and computation.
 
 \begin{equation}
     \label{eq:c_sequential}
-    C_{sequential} = C_{comp} + C_{comm}
+    C_{\mathrm{sequential}} = C_{\mathrm{comp}} + C_{\mathrm{comm}}
 \end{equation}
 
 We will now analyze the two components in more detail. The computation each \ac{pe} needs to perform is defined by the number of cells it needs to process and the operations it needs to perform on each cell. If the operations support \ac{simd} execution, it can run in parallel on multiple cells at once. We can calculate the cycles by dividing the respective operation count by the operation's \ac{simd} width.
 
-We separately analyze $C_{comp}$ for the r1-optimized and the general implementation. The r1-optimized implementation uses 4 \texttt{@fadds} instructions that support \ac{simd} execution with a \ac{simd} width of four and 2 \texttt{@fmuls} instructions that only have a \ac{simd} width of one.
+We separately analyze $C_{\mathrm{comp}}$ for the r1-optimized and the general implementation. The r1-optimized implementation uses 4 \texttt{@fadds} instructions that support \ac{simd} execution with a \ac{simd} width of four and 2 \texttt{@fmuls} instructions that only have a \ac{simd} width of one.
 
 \begin{equation}
     \begin{aligned}
         \label{eq:c_comp_r1}
-        C_{comp,r1} &= t_h t_w \left(\frac{4}{4} + \frac{2}{1}\right) \\[1ex]
+        C_{\mathrm{comp,r1}} &= t_h t_w \left(\frac{4}{4} + \frac{2}{1}\right) \\[1ex]
         &= t_h t_w \left(1 + 2\right) \\[1ex]
         &= 3 t_h t_w
     \end{aligned}
@@ -38,41 +38,41 @@ The general implementation uses $4r$ \texttt{@fmacs} and one \texttt{@fmuls} ins
 \begin{equation}
     \label{eq:c_comp_general}
     \begin{aligned}
-        C_{comp,general} &= t_h t_w \left(\frac{4r}{1} + \frac{1}{1}\right) \\[1ex]
+        C_{\mathrm{comp,general}} &= t_h t_w \left(\frac{4r}{1} + \frac{1}{1}\right) \\[1ex]
         &= t_h t_w \left(4r + 1\right)
     \end{aligned}
 \end{equation}
 
 
-The communication time $C_{comm}$ is defined by the number of elements that each \ac{pe} sends and receives. As we use 32-bit floating-point numbers and the link between the router and \ac{ce} supports exactly 32 bits per cycle, the number of cycles needed for communication is just the number of elements that each \ac{pe} sends and receives. Although the bidirectional link between router and \ac{ce} would allow parallel sending and receiving, the \ac{ce} is not able to run these two operations in parallel. As each \ac{pe} sends the same number of elements as it receives, we can count the received elements and multiply by two. The halo regions that need to be filled with the neighbors' data have $r t_w$ elements each in the north and south direction and $r t_h$ elements in the east and west direction. The total communication cycles are then:
+The communication time $C_{\mathrm{comm}}$ is defined by the number of elements that each \ac{pe} sends and receives. As we use 32-bit floating-point numbers and the link between the router and \ac{ce} supports exactly 32 bits per cycle, the number of cycles needed for communication is just the number of elements that each \ac{pe} sends and receives. Although the bidirectional link between router and \ac{ce} would allow parallel sending and receiving, the \ac{ce} is not able to run these two operations in parallel. As each \ac{pe} sends the same number of elements as it receives, we can count the received elements and multiply by two. The halo regions that need to be filled with the neighbors' data have $r t_w$ elements each in the north and south direction and $r t_h$ elements in the east and west direction. The total communication cycles are then:
 
 \begin{equation}
     \label{eq:c_comm}
     \begin{aligned}
-        C_{comm} &= C_{send} + C_{recv} \\[1ex]
+        C_{\mathrm{comm}} &= C_{\mathrm{send}} + C_{\mathrm{recv}} \\[1ex]
         &= 2\left(2 r t_w + 2 r t_h\right) \\[1ex]
         &= 4r\left(t_w+t_h\right)
     \end{aligned}
 \end{equation}
 
-Putting it all together, we can use the cycle count, tile size, and clock frequency of the \ac{wse}-3 to calculate the theoretical total throughput in cells per second for the whole system. Each \ac{pe} computes a tile of size $t_w \times t_h$ in $C_{ideal}$ or $C_{sequential}$ cycles. If the physical dimensions of the \ac{wse}-3 are $P_h \times P_w$ and the clock frequency is $f_{clk}$, the total throughput is given by:
+Putting it all together, we can use the cycle count, tile size, and clock frequency of the \ac{wse}-3 to calculate the theoretical total throughput in cells per second for the whole system. Each \ac{pe} computes a tile of size $t_w \times t_h$ in $C_{\mathrm{ideal}}$ or $C_{\mathrm{sequential}}$ cycles. If the physical dimensions of the \ac{wse}-3 are $P_h \times P_w$ and the clock frequency is $f_{\mathrm{clk}}$, the total throughput is given by:
 
 \begin{equation}
     \label{eq:throughput_ideal}
     \begin{aligned}
-        T_{ideal} &= \frac{P_h P_w f_{clk} t_w t_h}{C_{ideal}} \\[1ex]
-        &= \frac{P_h P_w f_{clk} t_w t_h}{\max\left(C_{comp}, C_{comm}\right)}
+        T_{\mathrm{ideal}} &= \frac{P_h P_w f_{\mathrm{clk}} t_w t_h}{C_{\mathrm{ideal}}} \\[1ex]
+        &= \frac{P_h P_w f_{\mathrm{clk}} t_w t_h}{\max\left(C_{\mathrm{comp}}, C_{\mathrm{comm}}\right)}
     \end{aligned}
 \end{equation}
 
-Analyzing the term $\max\left(C_{comp}, C_{comm}\right)$, we find that for all cases with a tile size greater than or equal to \numproduct{2 x 2}, the computation term exceeds the communication term, simplifying the throughput equation for the general implementation to:
+Analyzing the term $\max\left(C_{\mathrm{comp}}, C_{\mathrm{comm}}\right)$, we find that for all cases with a tile size greater than or equal to \numproduct{2 x 2}, the computation term exceeds the communication term, simplifying the throughput equation for the general implementation to:
 
 \begin{equation}
     \label{eq:throughput_ideal_simplified}
     \begin{aligned}
-        T_{ideal} &= \frac{P_h P_w f_{clk} t_w t_h}{C_{comp,general}} \\[1ex]
-        &= \frac{P_h P_w f_{clk} t_w t_h}{t_h t_w \left(4r + 1\right)} \\[1ex]
-        &= \frac{P_h P_w f_{clk}}{4r + 1}
+        T_{\mathrm{ideal}} &= \frac{P_h P_w f_{\mathrm{clk}} t_w t_h}{C_{\mathrm{comp,general}}} \\[1ex]
+        &= \frac{P_h P_w f_{\mathrm{clk}} t_w t_h}{t_h t_w \left(4r + 1\right)} \\[1ex]
+        &= \frac{P_h P_w f_{\mathrm{clk}}}{4r + 1}
     \end{aligned}
 \end{equation}
 
@@ -82,9 +82,9 @@ The throughput for the sequential model and the general implementation is given 
 \begin{equation}
     \label{eq:throughput_sequential}
     \begin{aligned}
-        T_{sequential} &= \frac{P_h P_w f_{clk} t_w t_h}{C_{sequential}} \\[1ex]
-        &= \frac{P_h P_w f_{clk} t_w t_h}{C_{comp,general} + C_{comm}} \\[1ex]
-        &= \frac{P_h P_w f_{clk} t_w t_h}{t_h t_w \left(4r + 1\right) + 4r\left(t_w+t_h\right)}
+        T_{\mathrm{sequential}} &= \frac{P_h P_w f_{\mathrm{clk}} t_w t_h}{C_{\mathrm{sequential}}} \\[1ex]
+        &= \frac{P_h P_w f_{\mathrm{clk}} t_w t_h}{C_{\mathrm{comp,general}} + C_{\mathrm{comm}}} \\[1ex]
+        &= \frac{P_h P_w f_{\mathrm{clk}} t_w t_h}{t_h t_w \left(4r + 1\right) + 4r\left(t_w+t_h\right)}
     \end{aligned}
 \end{equation}
 

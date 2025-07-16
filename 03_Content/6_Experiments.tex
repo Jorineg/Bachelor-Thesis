@@ -78,15 +78,15 @@ We now analyze the impact of tiling and radius, both in our theoretical performa
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.7\linewidth]{throughput_comparison_wse3.png}
-    \caption{Throughput comparison showing theoretical bounds ($T_{ideal}$, $T_{sequential}$) and measured performance for different radii and tile sizes}
+    \caption{Throughput comparison showing theoretical bounds ($T_{\mathrm{ideal}}$, $T_{\mathrm{sequential}}$) and measured performance for different radii and tile sizes}
     \label{fig:throughput_comparison_wse3}
 \end{figure}
 We can see that the throughput of the theoretical model scales almost proportionally to the inverse of the radius, and while the ideal model has a constant throughput for large enough tile sizes, the throughput of the sequential model increases as the tile sizes get larger.
-However, the difference between $T_{ideal}$ and $T_{sequential}$ decreases as the tile size increases. This is because the term for the computation cycles $C_{comp}$ scales with the area of the tile $t_w \times t_h$, while the communication term $C_{comm}$ only scales with the length of the border $t_w+t_h$, making it less significant for larger tiles.
+However, the difference between $T_{\mathrm{ideal}}$ and $T_{\mathrm{sequential}}$ decreases as the tile size increases. This is because the term for the computation cycles $C_{\mathrm{comp}}$ scales with the area of the tile $t_w \times t_h$, while the communication term $C_{\mathrm{comm}}$ only scales with the length of the border $t_w+t_h$, making it less significant for larger tiles.
 
-Our implementation gets relatively close to the possible throughput modeled by $T_{ideal}$ and $T_{sequential}$ for large tile sizes with up to 87.3\% or 89.7\% respectively, whereas it is below 10\% for small tile sizes. This can be explained by constant overhead per iteration that emerges from loading \acp{dsd} into \acp{dsr}, activating tasks, and communication latency.
+Our implementation gets relatively close to the possible throughput modeled by $T_{\mathrm{ideal}}$ and $T_{\mathrm{sequential}}$ for large tile sizes with up to 87.3\% or 89.7\% respectively, whereas it is below 10\% for small tile sizes. This can be explained by constant overhead per iteration that emerges from loading \acp{dsd} into \acp{dsr}, activating tasks, and communication latency.
 
-More interesting are the gaps between our implementation and $T_{sequential}$ even for large tile sizes. These must be attributed to factors that scale with $C_{comp}$. For the r1-optimized implementation, the gap is significantly larger, with our implementation reaching only 75\% of the $T_{sequential}$ model. We assume this is the case because the implementation mainly uses \texttt{@fadds} instructions that support a \ac{simd} width of four, which is never reached by our implementation. The general tiled implementation, on the other hand, uses only \texttt{@fmacs} and \texttt{@fmuls} instructions that have a \ac{simd} width of one, which our implementation mostly does reach.
+More interesting are the gaps between our implementation and $T_{\mathrm{sequential}}$ even for large tile sizes. These must be attributed to factors that scale with $C_{\mathrm{comp}}$. For the r1-optimized implementation, the gap is significantly larger, with our implementation reaching only 75\% of the $T_{\mathrm{sequential}}$ model. We assume this is the case because the implementation mainly uses \texttt{@fadds} instructions that support a \ac{simd} width of four, which is never reached by our implementation. The general tiled implementation, on the other hand, uses only \texttt{@fmacs} and \texttt{@fmuls} instructions that have a \ac{simd} width of one, which our implementation mostly does reach.
 
 There is relatively high jitter in the throughput for radius 2. We don't know why this is the case, but speculate that bank conflicts might occur for certain buffer sizes, limiting the \texttt{@fmacs} and \texttt{@fmuls} to less than one per cycle.
 
@@ -155,18 +155,18 @@ Nonetheless, how close an algorithm is to specific hardware peak performance is 
 
 The achieved computational efficiency can be calculated from the cycle counts measured in the earlier experiments, the total number of \acp{flop} executed in these experiments, and the maximum number of \acp{flop} that can be executed per cycle and \ac{pe} on the \ac{wse}.
 
-As described in \autoref{sec:implementation}, the single-cell implementation and the r1-optimized implementation perform \num{6} \acp{flop} per cell, iteration, and \ac{pe}, while the general tiled implementation performs $8r+1$ \acp{flop} per cell, iteration, and \ac{pe}. From the tile sizes used in the different experiments, we first calculate the total number of \acp{flop} ($F_{total}$) per iteration and \ac{pe} as:
+As described in \autoref{sec:implementation}, the single-cell implementation and the r1-optimized implementation perform \num{6} \acp{flop} per cell, iteration, and \ac{pe}, while the general tiled implementation performs $8r+1$ \acp{flop} per cell, iteration, and \ac{pe}. From the tile sizes used in the different experiments, we first calculate the total number of \acp{flop} ($F_{\mathrm{total}}$) per iteration and \ac{pe} as:
 \begin{equation}
-    F_{total} = t_w t_h (8r+1)
+    F_{\mathrm{total}} = t_w t_h (8r+1)
 \end{equation}
-and then divide by the measured cycle count $C_{measured}$ per iteration to get the average number of \acp{flop} per cycle and \ac{pe} ($F_{avg}$) as:
+and then divide by the measured cycle count $C_{\mathrm{measured}}$ per iteration to get the average number of \acp{flop} per cycle and \ac{pe} ($F_{\mathrm{avg}}$) as:
 \begin{equation}
-    F_{avg} = \frac{F_{total}}{C_{measured}}
+    F_{\mathrm{avg}} = \frac{F_{\mathrm{total}}}{C_{\mathrm{measured}}}
 \end{equation}
 
-We find that the maximum number of theoretically possible FP32 operations per cycle and \ac{pe} ($F_{max}$) can be obtained with \texttt{@fadds} instructions, which support a \ac{simd} width of 2 on the \ac{wse}-2 and 4 on the \ac{wse}-3 (\texttt{@fmacs} is not supported in \ac{simd} mode). Using the calculated average number of \acp{flop} per cycle and \ac{pe} $F_{avg}$ and the maximum number of \acp{flop} per cycle and \ac{pe} $F_{max}$, we calculate the theoretically possible percentage of the peak performance $E_{avg}$ as:
+We find that the maximum number of theoretically possible FP32 operations per cycle and \ac{pe} ($F_{\mathrm{max}}$) can be obtained with \texttt{@fadds} instructions, which support a \ac{simd} width of 2 on the \ac{wse}-2 and 4 on the \ac{wse}-3 (\texttt{@fmacs} is not supported in \ac{simd} mode). Using the calculated average number of \acp{flop} per cycle and \ac{pe} $F_{\mathrm{avg}}$ and the maximum number of \acp{flop} per cycle and \ac{pe} $F_{\mathrm{max}}$, we calculate the theoretically possible percentage of the peak performance $E_{\mathrm{avg}}$ as:
 \begin{equation}
-    E_{avg} = \frac{F_{avg}}{F_{max}}
+    E_{\mathrm{avg}} = \frac{F_{\mathrm{avg}}}{F_{\mathrm{max}}}
 \end{equation}
 
 \begin{figure}[h]
